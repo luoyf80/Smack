@@ -20,8 +20,7 @@ package org.jivesoftware.smack.debugger;
 import java.io.Reader;
 import java.io.Writer;
 
-import org.jivesoftware.smack.StanzaListener;
-import org.jxmpp.jid.FullJid;
+import org.jivesoftware.smack.PacketListener;
 
 /**
  * Interface that allows for implementing classes to debug XML traffic. That is a GUI window that 
@@ -41,7 +40,7 @@ public interface SmackDebugger {
      * 
      * @param user the user@host/resource that has just logged in
      */
-    public abstract void userHasLogged(FullJid user);
+    public abstract void userHasLogged(String user);
 
     /**
      * Returns the special Reader that wraps the main Reader and logs data to the GUI.
@@ -85,7 +84,7 @@ public interface SmackDebugger {
      * @return the PacketListener that will listen for all incoming packets and write them to 
      * the GUI
      */
-    public abstract StanzaListener getReaderListener();
+    public abstract PacketListener getReaderListener();
 
     /**
      * Returns the thread that will listen for all outgoing packets and write them to the GUI. 
@@ -93,5 +92,5 @@ public interface SmackDebugger {
      * @return the PacketListener that will listen for all sent packets and write them to 
      * the GUI
      */
-    public abstract StanzaListener getWriterListener();
+    public abstract PacketListener getWriterListener();
 }

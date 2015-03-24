@@ -17,13 +17,17 @@
 
 package org.jivesoftware.smack.provider;
 
+import java.io.IOException;
+
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Element;
 import org.jivesoftware.smack.util.ParserUtils;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 public abstract class Provider<E extends Element> {
 
-    public final E parse(XmlPullParser parser) throws Exception{
+    public final E parse(XmlPullParser parser) throws XmlPullParserException, IOException, SmackException {
         // XPP3 calling convention assert: Parser should be at start tag
         ParserUtils.assertAtStartTag(parser);
 
@@ -35,5 +39,5 @@ public abstract class Provider<E extends Element> {
         return e;
     }
 
-    public abstract E parse(XmlPullParser parser, int initialDepth) throws Exception;
+    public abstract E parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException, SmackException;
 }

@@ -16,7 +16,7 @@
  */
 package org.jivesoftware.smackx.pubsub;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 
 /**
  * A class which represents a common element within the pubsub defined
@@ -26,11 +26,11 @@ import org.jivesoftware.smack.packet.ExtensionElement;
  * 
  * @author Robin Collier
  */
-public class NodeExtension implements ExtensionElement
+public class NodeExtension implements PacketExtension
 {
 	private final PubSubElementType element;
 	private final String node;
-
+	
 	/**
 	 * Constructs a <tt>NodeExtension</tt> with an element name specified
 	 * by {@link PubSubElementType} and the specified node id.
@@ -64,7 +64,7 @@ public class NodeExtension implements ExtensionElement
 	{
 		return node;
 	}
-
+	
 	public String getElementName()
 	{
 		return element.getElementName();

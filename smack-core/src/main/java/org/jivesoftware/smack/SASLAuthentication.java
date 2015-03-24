@@ -180,23 +180,27 @@ public class SASLAuthentication {
      * @throws XMPPErrorException 
      * @throws SASLErrorException 
      * @throws SmackException 
-     * @throws InterruptedException 
      */
     public void authenticate(String resource, CallbackHandler cbh) throws IOException,
-                    XMPPErrorException, SASLErrorException, SmackException, InterruptedException {
+                    XMPPErrorException, SASLErrorException, SmackException {
         SASLMechanism selectedMechanism = selectMechanism();
         if (selectedMechanism != null) {
             currentMechanism = selectedMechanism;
             synchronized (this) {
                 currentMechanism.authenticate(connection.getHost(), connection.getServiceName(), cbh);
-                // Wait until SASL negotiation finishes
-                wait(connection.getPacketReplyTimeout());
+                try {
+                    // Wait until SASL negotiation finishes
+                    wait(connection.getPacketReplyTimeout());
+                }
+                catch (InterruptedException e) {
+                    // Ignore
+                }
             }
 
             maybeThrowException();
 
             if (!authenticationSuccessful) {
-                throw NoResponseException.newWith(connection);
+                throw new NoResponseException(connection);
             }
         }
         else {
@@ -220,11 +224,10 @@ public class SASLAuthentication {
      * @throws SASLErrorException 
      * @throws IOException 
      * @throws SmackException 
-     * @throws InterruptedException 
      */
     public void authenticate(String username, String password, String resource)
                     throws XMPPErrorException, SASLErrorException, IOException,
-                    SmackException, InterruptedException {
+                    SmackException {
         SASLMechanism selectedMechanism = selectMechanism();
         if (selectedMechanism != null) {
             currentMechanism = selectedMechanism;
@@ -232,14 +235,19 @@ public class SASLAuthentication {
             synchronized (this) {
                 currentMechanism.authenticate(username, connection.getHost(),
                                 connection.getServiceName(), password);
-                // Wait until SASL negotiation finishes
-                wait(connection.getPacketReplyTimeout());
+                try {
+                    // Wait until SASL negotiation finishes
+                    wait(connection.getPacketReplyTimeout());
+                }
+                catch (InterruptedException e) {
+                    // Ignore
+                }
             }
 
             maybeThrowException();
 
             if (!authenticationSuccessful) {
-                throw NoResponseException.newWith(connection);
+                throw new NoResponseException(connection);
             }
         }
         else {
@@ -259,22 +267,26 @@ public class SASLAuthentication {
      * @throws SASLErrorException 
      * @throws XMPPErrorException if an error occures while authenticating.
      * @throws SmackException if there was no response from the server.
-     * @throws InterruptedException 
      */
     public void authenticateAnonymously() throws SASLErrorException,
-                    SmackException, XMPPErrorException, InterruptedException {
+                    SmackException, XMPPErrorException {
         currentMechanism = (new SASLAnonymous()).instanceForAuthentication(connection);
 
         // Wait until SASL negotiation finishes
         synchronized (this) {
             currentMechanism.authenticate(null, null, null, "");
-            wait(connection.getPacketReplyTimeout());
+            try {
+                wait(connection.getPacketReplyTimeout());
+            }
+            catch (InterruptedException e) {
+                // Ignore
+            }
         }
 
         maybeThrowException();
 
         if (!authenticationSuccessful) {
-            throw NoResponseException.newWith(connection);
+            throw new NoResponseException(connection);
         }
     }
 
@@ -296,9 +308,8 @@ public class SASLAuthentication {
      * 
      * @param challenge a base64 encoded string representing the challenge.
      * @throws SmackException
-     * @throws InterruptedException 
      */
-    public void challengeReceived(String challenge) throws SmackException, InterruptedException {
+    public void challengeReceived(String challenge) throws SmackException {
         challengeReceived(challenge, false);
     }
 
@@ -311,12 +322,11 @@ public class SASLAuthentication {
      * @param challenge a base64 encoded string representing the challenge.
      * @param finalChallenge true if this is the last challenge send by the server within the success stanza
      * @throws SmackException
-     * @throws InterruptedException
      */
-    public void challengeReceived(String challenge, boolean finalChallenge) throws SmackException, InterruptedException {
+    public void challengeReceived(String challenge, boolean finalChallenge) throws SmackException {
         try {
             currentMechanism.challengeReceived(challenge, finalChallenge);
-        } catch (InterruptedException | SmackException e) {
+        } catch (SmackException e) {
             authenticationFailed(e);
             throw e;
         }
@@ -326,9 +336,8 @@ public class SASLAuthentication {
      * Notification message saying that SASL authentication was successful. The next step
      * would be to bind the resource.
      * @throws SmackException 
-     * @throws InterruptedException 
      */
-    public void authenticated(Success success) throws SmackException, InterruptedException {
+    public void authenticated(Success success) throws SmackException {
         // RFC6120 6.3.10 "At the end of the authentication exchange, the SASL server (the XMPP
         // "receiving entity") can include "additional data with success" if appropriate for the
         // SASL mechanism in use. In XMPP, this is done by including the additional data as the XML

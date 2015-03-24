@@ -25,8 +25,6 @@ import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.bytestreams.ibb.packet.Close;
 import org.junit.Test;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.JidTestUtil;
 import org.mockito.ArgumentCaptor;
 import org.powermock.reflect.Whitebox;
 
@@ -37,8 +35,8 @@ import org.powermock.reflect.Whitebox;
  */
 public class CloseListenerTest {
 
-    static final Jid initiatorJID = JidTestUtil.DUMMY_AT_EXAMPLE_ORG_SLASH_DUMMYRESOURCE;
-    static final Jid targetJID = JidTestUtil.FULL_JID_1_RESOURCE_1;
+    String initiatorJID = "initiator@xmpp-server/Smack";
+    String targetJID = "target@xmpp-server/Smack";
 
     /**
      * If a close request to an unknown session is received it should be replied
@@ -70,7 +68,7 @@ public class CloseListenerTest {
 
         // capture reply to the In-Band Bytestream close request
         ArgumentCaptor<IQ> argument = ArgumentCaptor.forClass(IQ.class);
-        verify(connection).sendStanza(argument.capture());
+        verify(connection).sendPacket(argument.capture());
 
         // assert that reply is the correct error packet
         assertEquals(initiatorJID, argument.getValue().getTo());

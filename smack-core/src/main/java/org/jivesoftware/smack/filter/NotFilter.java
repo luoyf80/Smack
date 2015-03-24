@@ -18,7 +18,6 @@
 package org.jivesoftware.smack.filter;
 
 import org.jivesoftware.smack.packet.Stanza;
-import org.jivesoftware.smack.util.Objects;
 
 /**
  * Implements the logical NOT operation on a packet filter. In other words, packets
@@ -26,17 +25,20 @@ import org.jivesoftware.smack.util.Objects;
  *
  * @author Matt Tucker
  */
-public class NotFilter implements StanzaFilter {
+public class NotFilter implements PacketFilter {
 
-    private final StanzaFilter filter;
+    private final PacketFilter filter;
 
     /**
      * Creates a NOT filter using the specified filter.
      *
      * @param filter the filter.
      */
-    public NotFilter(StanzaFilter filter) {
-        this.filter = Objects.requireNonNull(filter, "Parameter must not be null.");
+    public NotFilter(PacketFilter filter) {
+        if (filter == null) {
+            throw new IllegalArgumentException("Parameter must not be null.");
+        }
+        this.filter = filter;
     }
 
     public boolean accept(Stanza packet) {

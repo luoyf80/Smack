@@ -16,6 +16,7 @@
  */
 package org.jivesoftware.smackx.hoxt.provider;
 
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.NamedElement;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.jivesoftware.smack.util.StringUtils;
@@ -54,9 +55,11 @@ public abstract class AbstractHttpOverXmppProvider<H extends AbstractHttpOverXmp
      * @param parser      parser
      * @param elementName name of concrete implementation of this element
      * @param body        parent Body element
-     * @throws Exception 
+     * @throws IOException 
+     * @throws XmlPullParserException 
+     * @throws SmackException 
      */
-    protected void parseHeadersAndData(XmlPullParser parser, String elementName, AbstractHttpOverXmpp body) throws Exception {
+    protected void parseHeadersAndData(XmlPullParser parser, String elementName, AbstractHttpOverXmpp body) throws XmlPullParserException, IOException, SmackException {
         boolean done = false;
 
         while (!done) {

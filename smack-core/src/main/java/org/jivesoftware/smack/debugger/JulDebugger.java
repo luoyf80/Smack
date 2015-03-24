@@ -20,7 +20,6 @@ import org.jivesoftware.smack.XMPPConnection;
 
 import java.io.Reader;
 import java.io.Writer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -47,8 +46,4 @@ public class JulDebugger extends AbstractDebugger {
         LOGGER.fine(logMessage);
     }
 
-    @Override
-    protected void log(String logMessage, Throwable throwable) {
-        LOGGER.log(Level.FINE, logMessage, throwable);
-    }
 }

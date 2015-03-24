@@ -19,7 +19,6 @@ package org.jivesoftware.smack;
 
 import org.jivesoftware.smack.packet.Session;
 import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.jxmpp.jid.DomainBareJid;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
@@ -44,7 +43,7 @@ public abstract class ConnectionConfiguration {
      * of the server. However, there are some servers like google where host would be
      * talk.google.com and the serviceName would be gmail.com.
      */
-    protected final DomainBareJid serviceName;
+    protected final String serviceName;
     protected final String host;
     protected final int port;
 
@@ -137,13 +136,13 @@ public abstract class ConnectionConfiguration {
      *
      * @return the server name of the target server.
      */
-    public DomainBareJid getServiceName() {
+    public String getServiceName() {
         return serviceName;
     }
 
     /**
      * Returns the TLS security mode used when making the connection. By default,
-     * the mode is {@link SecurityMode#ifpossible}.
+     * the mode is {@link SecurityMode#enabled}.
      *
      * @return the security mode.
      */
@@ -285,13 +284,8 @@ public abstract class ConnectionConfiguration {
         /**
          * Security via TLS encryption is used whenever it's available. This is the
          * default setting.
-         * <p>
-         * <b>Do not use this setting</b> unless you can't use {@link #required}. An attacker could easily perform a
-         * Man-in-the-middle attack and prevent TLS from being used, leaving you with an unencrypted (and
-         * unauthenticated) connection.
-         * </p>
          */
-        ifpossible,
+        enabled,
 
         /**
          * Security via TLS encryption is disabled and only un-encrypted connections will
@@ -366,7 +360,7 @@ public abstract class ConnectionConfiguration {
      * @param <C> the resulting connection configuration type parameter.
      */
     public static abstract class Builder<B extends Builder<B, C>, C extends ConnectionConfiguration> {
-        private SecurityMode securityMode = SecurityMode.ifpossible;
+        private SecurityMode securityMode = SecurityMode.enabled;
         private String keystorePath = System.getProperty("javax.net.ssl.keyStore");
         private String keystoreType = "jks";
         private String pkcs11Library = "pkcs11.config";
@@ -383,7 +377,7 @@ public abstract class ConnectionConfiguration {
         private CallbackHandler callbackHandler;
         private boolean debuggerEnabled = SmackConfiguration.DEBUG;
         private SocketFactory socketFactory;
-        private DomainBareJid serviceName;
+        private String serviceName;
         private String host;
         private int port = 5222;
         private boolean allowEmptyOrNullUsername = false;
@@ -414,7 +408,7 @@ public abstract class ConnectionConfiguration {
          * @param serviceName the service name
          * @return a reference to this builder.
          */
-        public B setServiceName(DomainBareJid serviceName) {
+        public B setServiceName(String serviceName) {
             this.serviceName = serviceName;
             return getThis();
         }
@@ -461,7 +455,7 @@ public abstract class ConnectionConfiguration {
 
         /**
          * Sets the TLS security mode used when making the connection. By default,
-         * the mode is {@link SecurityMode#ifpossible}.
+         * the mode is {@link SecurityMode#enabled}.
          *
          * @param securityMode the security mode.
          * @return a reference to this builder.

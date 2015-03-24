@@ -302,7 +302,7 @@ public abstract class IQ extends Stanza {
             this(iq.getChildElementName(), iq.getChildElementNamespace());
         }
 
-        public IQChildElementXmlStringBuilder(ExtensionElement pe) {
+        public IQChildElementXmlStringBuilder(PacketExtension pe) {
             this(pe.getElementName(), pe.getNamespace());
         }
 

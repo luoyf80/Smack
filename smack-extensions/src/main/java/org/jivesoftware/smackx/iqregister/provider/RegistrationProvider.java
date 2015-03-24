@@ -16,26 +16,29 @@
  */
 package org.jivesoftware.smackx.iqregister.provider;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.IQ;
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.iqregister.packet.Registration;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 public class RegistrationProvider extends IQProvider<Registration> {
 
     @Override
     public Registration parse(XmlPullParser parser, int initialDepth)
-                    throws Exception {
+                    throws XmlPullParserException, IOException, SmackException {
         String instruction = null;
         Map<String, String> fields = new HashMap<String, String>();
-        List<ExtensionElement> packetExtensions = new LinkedList<ExtensionElement>();
+        List<PacketExtension> packetExtensions = new LinkedList<PacketExtension>();
         outerloop:
         while (true) {
             int eventType = parser.next();
@@ -59,7 +62,7 @@ public class RegistrationProvider extends IQProvider<Registration> {
                 }
                 // Otherwise, it must be a packet extension.
                 else {
-                    PacketParserUtils.addExtensionElement(packetExtensions, parser);
+                    PacketParserUtils.addPacketExtension(packetExtensions, parser);
                 }
             }
             else if (eventType == XmlPullParser.END_TAG) {

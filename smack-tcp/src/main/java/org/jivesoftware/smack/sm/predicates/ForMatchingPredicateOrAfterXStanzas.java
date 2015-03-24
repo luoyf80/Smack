@@ -16,15 +16,15 @@
  */
 package org.jivesoftware.smack.sm.predicates;
 
-import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Stanza;
 
-public class ForMatchingPredicateOrAfterXStanzas implements StanzaFilter {
+public class ForMatchingPredicateOrAfterXStanzas implements PacketFilter {
 
-    private final StanzaFilter predicate;
+    private final PacketFilter predicate;
     private final AfterXStanzas afterXStanzas;
 
-    public ForMatchingPredicateOrAfterXStanzas(StanzaFilter predicate, int count) {
+    public ForMatchingPredicateOrAfterXStanzas(PacketFilter predicate, int count) {
         this.predicate = predicate;
         this.afterXStanzas = new AfterXStanzas(count);
     }

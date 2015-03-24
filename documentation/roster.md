@@ -1,7 +1,7 @@
 Roster and Presence
 ===================
 
-[Back](index.md)
+[Back](index.html)
 
 The roster lets you keep track of the availability ("presence") of other
 users. A roster also allows you to organize users into groups such as

@@ -1,7 +1,7 @@
 Smack: XMPPConnection Management
 ================================
 
-[Back](index.md)
+[Back](index.html)
 
 Creating a Connection
 ---------------------

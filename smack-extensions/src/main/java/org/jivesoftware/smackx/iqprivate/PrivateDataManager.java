@@ -99,7 +99,7 @@ public class PrivateDataManager extends Manager {
      */
     public static PrivateDataProvider getPrivateDataProvider(String elementName, String namespace) {
         String key = getProviderKey(elementName, namespace);
-        return privateDataProviders.get(key);
+        return (PrivateDataProvider)privateDataProviders.get(key);
     }
 
     /**
@@ -153,9 +153,8 @@ public class PrivateDataManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public PrivateData getPrivateData(final String elementName, final String namespace) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException
+    public PrivateData getPrivateData(final String elementName, final String namespace) throws NoResponseException, XMPPErrorException, NotConnectedException
     {
         // Create an IQ packet to get the private data.
         IQ privateDataGet = new PrivateDataIQ(elementName, namespace);
@@ -174,9 +173,8 @@ public class PrivateDataManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void setPrivateData(final PrivateData privateData) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public void setPrivateData(final PrivateData privateData) throws NoResponseException, XMPPErrorException, NotConnectedException {
         // Create an IQ packet to set the private data.
         IQ privateDataSet = new PrivateDataIQ(privateData);
 

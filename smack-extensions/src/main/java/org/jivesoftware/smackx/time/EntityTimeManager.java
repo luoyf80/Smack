@@ -34,7 +34,6 @@ import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smack.packet.XMPPError.Condition;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.time.packet.Time;
-import org.jxmpp.jid.Jid;
 
 public class EntityTimeManager extends Manager {
 
@@ -100,11 +99,11 @@ public class EntityTimeManager extends Manager {
         enabled = false;
     }
 
-    public boolean isTimeSupported(Jid jid) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException  {
+    public boolean isTimeSupported(String jid) throws NoResponseException, XMPPErrorException, NotConnectedException  {
         return ServiceDiscoveryManager.getInstanceFor(connection()).supportsFeature(jid, Time.NAMESPACE);
     }
 
-    public Time getTime(Jid jid) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public Time getTime(String jid) throws NoResponseException, XMPPErrorException, NotConnectedException {
         if (!isTimeSupported(jid))
             return null;
 

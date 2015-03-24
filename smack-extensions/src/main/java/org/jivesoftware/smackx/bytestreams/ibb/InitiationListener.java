@@ -27,7 +27,6 @@ import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smackx.bytestreams.BytestreamListener;
 import org.jivesoftware.smackx.bytestreams.ibb.packet.Open;
-import org.jivesoftware.smackx.filetransfer.StreamNegotiator;
 
 
 /**
@@ -70,7 +69,7 @@ class InitiationListener extends AbstractIqRequestHandler {
                 try {
                     processRequest(packet);
                 }
-                catch (InterruptedException | NotConnectedException e) {
+                catch (NotConnectedException e) {
                     LOGGER.log(Level.WARNING, "proccessRequest", e);
                 }
             }
@@ -78,7 +77,7 @@ class InitiationListener extends AbstractIqRequestHandler {
         return null;
     }
 
-    private void processRequest(Stanza packet) throws NotConnectedException, InterruptedException {
+    private void processRequest(Stanza packet) throws NotConnectedException {
         Open ibbRequest = (Open) packet;
 
         // validate that block size is within allowed range
@@ -86,8 +85,6 @@ class InitiationListener extends AbstractIqRequestHandler {
             this.manager.replyResourceConstraintPacket(ibbRequest);
             return;
         }
-
-        StreamNegotiator.signal(ibbRequest.getFrom().toString() + '\t' + ibbRequest.getSessionID(), ibbRequest);
 
         // ignore request if in ignore list
         if (this.manager.getIgnoredBytestreamRequests().remove(ibbRequest.getSessionID()))

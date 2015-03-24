@@ -45,9 +45,4 @@ public class AndroidDebugger extends AbstractDebugger {
     protected void log(String logMessage) {
                 Log.d("SMACK", logMessage);
     }
-
-    @Override
-    protected void log(String logMessage, Throwable throwable) {
-                Log.d("SMACK", logMessage, throwable);
-    }
 }

@@ -24,7 +24,6 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.SimpleIQ;
 import org.jivesoftware.smack.provider.IQProvider;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -54,9 +53,9 @@ public class OfferConfirmation extends SimpleIQ {
     }
 
 
-    public void notifyService(XMPPConnection con, Jid workgroup, String createdRoomName) throws NotConnectedException, InterruptedException {
+    public void notifyService(XMPPConnection con, String workgroup, String createdRoomName) throws NotConnectedException {
         NotifyServicePacket packet = new NotifyServicePacket(workgroup, createdRoomName);
-        con.sendStanza(packet);
+        con.sendPacket(packet);
     }
 
     public static class Provider extends IQProvider<OfferConfirmation> {
@@ -101,7 +100,7 @@ public class OfferConfirmation extends SimpleIQ {
     private class NotifyServicePacket extends IQ {
         String roomName;
 
-        NotifyServicePacket(Jid workgroup, String roomName) {
+        NotifyServicePacket(String workgroup, String roomName) {
             super("offer-confirmation", "http://jabber.org/protocol/workgroup");
             this.setTo(workgroup);
             this.setType(IQ.Type.result);

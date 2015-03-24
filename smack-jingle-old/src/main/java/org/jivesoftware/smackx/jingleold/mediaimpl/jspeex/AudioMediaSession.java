@@ -21,7 +21,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.security.GeneralSecurityException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.media.NoProcessorException;
@@ -139,16 +138,16 @@ public class AudioMediaSession extends JingleMediaSession implements MediaSessio
             mediaSession = createSession(localIp, localPort, ip, remotePort, this, 2, false, true);
         }
         catch (NoProcessorException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
         catch (UnsupportedFormatException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
         catch (IOException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
         catch (GeneralSecurityException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
     }
 
@@ -162,7 +161,7 @@ public class AudioMediaSession extends JingleMediaSession implements MediaSessio
             this.mediaReceived("");
         }
         catch (IOException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
     }
 
@@ -226,7 +225,7 @@ public class AudioMediaSession extends JingleMediaSession implements MediaSessio
                 return freePort;
             }
             catch (IOException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
         }
         try {
@@ -235,7 +234,7 @@ public class AudioMediaSession extends JingleMediaSession implements MediaSessio
             ss.close();
         }
         catch (IOException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
         return freePort;
     }

@@ -1,6 +1,6 @@
 /**
  *
- * Copyright © 2014-2015 Florian Schmaus
+ * Copyright © 2014 Florian Schmaus
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.IQ;
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.util.ParserUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -51,7 +51,7 @@ public class IntrospectionProvider{
         }
     }
 
-    public static abstract class PacketExtensionIntrospectionProvider<PE extends ExtensionElement> extends ExtensionElementProvider<PE> {
+    public static abstract class PacketExtensionIntrospectionProvider<PE extends PacketExtension> extends PacketExtensionProvider<PE> {
         private final Class<PE> elementClass;
 
         protected PacketExtensionIntrospectionProvider(Class<PE> elementClass) {
@@ -117,25 +117,25 @@ public class IntrospectionProvider{
      * @throws ClassNotFoundException
      */
     private static Object decode(Class<?> type, String value) throws ClassNotFoundException {
-        String name = type.getName();
-        switch (name) {
-        case "java.lang.String":
+        if (type.getName().equals("java.lang.String")) {
             return value;
-        case "boolean":
+        }
+        if (type.getName().equals("boolean")) {
             return Boolean.valueOf(value);
-        case "int":
+        }
+        if (type.getName().equals("int")) {
             return Integer.valueOf(value);
-        case "long":
+        }
+        if (type.getName().equals("long")) {
             return Long.valueOf(value);
-        case "float":
+        }
+        if (type.getName().equals("float")) {
             return Float.valueOf(value);
-        case "double":
+        }
+        if (type.getName().equals("double")) {
             return Double.valueOf(value);
-        case "short":
-            return Short.valueOf(value);
-        case "byte":
-            return Byte.valueOf(value);
-        case "java.lang.Class":
+        }
+        if (type.getName().equals("java.lang.Class")) {
             return Class.forName(value);
         }
         return null;

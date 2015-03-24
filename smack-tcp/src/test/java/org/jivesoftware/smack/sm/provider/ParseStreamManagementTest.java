@@ -97,6 +97,8 @@ public class ParseStreamManagementTest {
                 .element(errorCondition.toString(), XMPPError.NAMESPACE)
                 .asString(outputProperties);
 
+        System.err.println(failedStanza);
+
         StreamManagement.Failed failedPacket = ParseStreamManagement.failed(
                 PacketParserUtils.getParserFor(failedStanza));
 

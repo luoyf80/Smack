@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.jivesoftware.smack.DummyConnection;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.im.InitSmackIm;
@@ -49,9 +50,6 @@ import org.jivesoftware.smack.util.PacketParserUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.impl.JidCreate;
-import org.jxmpp.stringprep.XmppStringprepException;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
@@ -106,18 +104,18 @@ public class RosterTest extends InitSmackIm {
 
         // Verify roster
         assertTrue("Roster can't be loaded!", roster.waitUntilLoaded());
-        verifyRomeosEntry(roster.getEntry(JidCreate.from("romeo@example.net")));
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyRomeosEntry(roster.getEntry("romeo@example.net"));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries.", 3, roster.getEntries().size());
 
         // Verify roster listener
         assertTrue("The roster listener wasn't invoked for Romeo.",
-                rosterListener.addedAddressesContains("romeo@example.net"));
+                rosterListener.getAddedAddresses().contains("romeo@example.net"));
         assertTrue("The roster listener wasn't invoked for Mercutio.",
-                rosterListener.addedAddressesContains("mercutio@example.com"));
+                rosterListener.getAddedAddresses().contains("mercutio@example.com"));
         assertTrue("The roster listener wasn't invoked for Benvolio.",
-                rosterListener.addedAddressesContains("benvolio@example.net"));
+                rosterListener.getAddedAddresses().contains("benvolio@example.net"));
         assertSame("RosterListeners implies that a item was deleted!",
                 0,
                 rosterListener.getDeletedAddresses().size());
@@ -134,7 +132,7 @@ public class RosterTest extends InitSmackIm {
     @Test
     public void testAddRosterItem() throws Throwable {
         // Constants for the new contact
-        final Jid contactJID = JidCreate.from("nurse@example.com");
+        final String contactJID = "nurse@example.com";
         final String contactName = "Nurse";
         final String[] contactGroup = {"Servants"};
 
@@ -191,9 +189,9 @@ public class RosterTest extends InitSmackIm {
                 addedEntry.getGroups().iterator().next().getName());
 
         // Verify the unchanged roster items
-        verifyRomeosEntry(roster.getEntry(JidCreate.from("romeo@example.net")));
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyRomeosEntry(roster.getEntry("romeo@example.net"));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries.", 4, roster.getEntries().size());
     }
 
@@ -205,7 +203,7 @@ public class RosterTest extends InitSmackIm {
     @Test
     public void testUpdateRosterItem() throws Throwable {
         // Constants for the updated contact
-        final Jid contactJID = JidCreate.from("romeo@example.net");
+        final String contactJID = "romeo@example.net";
         final String contactName = "Romeo";
         final String[] contactGroups = {"Friends", "Lovers"};
 
@@ -265,8 +263,8 @@ public class RosterTest extends InitSmackIm {
                 addedEntry.getGroups().size());
 
         // Verify the unchanged roster items
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries (" + roster.getEntries() + ").",
                 3,
                 roster.getEntries().size());
@@ -280,7 +278,7 @@ public class RosterTest extends InitSmackIm {
     @Test
     public void testDeleteRosterItem() throws Throwable {
         // The contact which should be deleted
-        final Jid contactJID = JidCreate.from("romeo@example.net");
+        final String contactJID = "romeo@example.net";
 
         // Setup
         assertNotNull("Can't get the roster from the provided connection!", roster);
@@ -312,8 +310,8 @@ public class RosterTest extends InitSmackIm {
         assertNull("The contact wasn't deleted from the roster!", deletedEntry);
         assertTrue("The roster listener wasn't invoked for the deleted contact!",
                 rosterListener.getDeletedAddresses().contains(contactJID));
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries (" + roster.getEntries() + ").",
                 2,
                 roster.getEntries().size());
@@ -326,7 +324,7 @@ public class RosterTest extends InitSmackIm {
      */
     @Test
     public void testSimpleRosterPush() throws Throwable {
-        final Jid contactJID = JidCreate.from("nurse@example.com");
+        final String contactJID = "nurse@example.com";
         assertNotNull("Can't get the roster from the provided connection!", roster);
         final StringBuilder sb = new StringBuilder();
         sb.append("<iq id=\"rostertest1\" type=\"set\" ")
@@ -357,26 +355,24 @@ public class RosterTest extends InitSmackIm {
                 addedEntry.getGroups().size());
 
         // Verify the unchanged roster items
-        verifyRomeosEntry(roster.getEntry(JidCreate.from("romeo@example.net")));
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyRomeosEntry(roster.getEntry("romeo@example.net"));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries.", 4, roster.getEntries().size());
     }
 
     /**
      * Tests that roster pushes with invalid from are ignored.
-     * @throws XmppStringprepException 
      *
      * @see <a href="http://xmpp.org/rfcs/rfc6121.html#roster-syntax-actions-push">RFC 6121, Section 2.1.6</a>
      */
     @Test
-    public void testIgnoreInvalidFrom() throws XmppStringprepException {
-        final Jid spammerJid = JidCreate.from("spam@example.com");
+    public void testIgnoreInvalidFrom() {
         RosterPacket packet = new RosterPacket();
         packet.setType(Type.set);
         packet.setTo(connection.getUser());
-        packet.setFrom(JidCreate.from("mallory@example.com"));
-        packet.addRosterItem(new Item(spammerJid, "Cool products!"));
+        packet.setFrom("mallory@example.com");
+        packet.addRosterItem(new Item("spam@example.com", "Cool products!"));
 
         final String requestId = packet.getStanzaId();
         // Simulate receiving the roster push
@@ -387,7 +383,7 @@ public class RosterTest extends InitSmackIm {
         assertEquals(requestId, errorIQ.getStanzaId());
         assertEquals(Condition.service_unavailable, errorIQ.getError().getCondition());
 
-        assertNull("Contact was added to roster", Roster.getInstanceFor(connection).getEntry(spammerJid));
+        assertNull("Contact was added to roster", Roster.getInstanceFor(connection).getEntry("spam@example.com"));
     }
 
     /**
@@ -399,7 +395,7 @@ public class RosterTest extends InitSmackIm {
     @Test(timeout=5000)
     public void testAddEmptyGroupEntry() throws Throwable {
         // Constants for the new contact
-        final Jid contactJID = JidCreate.from("nurse@example.com");
+        final String contactJID = "nurse@example.com";
         final String contactName = "Nurse";
         final String[] contactGroup = {""};
 
@@ -421,7 +417,7 @@ public class RosterTest extends InitSmackIm {
                 assertSame("Shouldn't provide an empty group element!",
                         0,
                         item.getGroupNames().size());
-
+                
             }
         };
         serverSimulator.start();
@@ -451,9 +447,9 @@ public class RosterTest extends InitSmackIm {
                 addedEntry.getGroups().size());
 
         // Verify the unchanged roster items
-        verifyRomeosEntry(roster.getEntry(JidCreate.from("romeo@example.net")));
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyRomeosEntry(roster.getEntry("romeo@example.net"));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries.", 4, roster.getEntries().size());
     }
 
@@ -465,7 +461,7 @@ public class RosterTest extends InitSmackIm {
      */
     @Test
     public void testEmptyGroupRosterPush() throws Throwable {
-        final Jid contactJID = JidCreate.from("nurse@example.com");
+        final String contactJID = "nurse@example.com";
         assertNotNull("Can't get the roster from the provided connection!", roster);
         final StringBuilder sb = new StringBuilder();
         sb.append("<iq id=\"rostertest2\" type=\"set\" ")
@@ -498,9 +494,9 @@ public class RosterTest extends InitSmackIm {
                 addedEntry.getGroups().size());
 
         // Verify the unchanged roster items
-        verifyRomeosEntry(roster.getEntry(JidCreate.from("romeo@example.net")));
-        verifyMercutiosEntry(roster.getEntry(JidCreate.from("mercutio@example.com")));
-        verifyBenvoliosEntry(roster.getEntry(JidCreate.from("benvolio@example.net")));
+        verifyRomeosEntry(roster.getEntry("romeo@example.net"));
+        verifyMercutiosEntry(roster.getEntry("mercutio@example.com"));
+        verifyBenvoliosEntry(roster.getEntry("benvolio@example.net"));
         assertSame("Wrong number of roster entries.", 4, roster.getEntries().size());
     }
 
@@ -537,9 +533,8 @@ public class RosterTest extends InitSmackIm {
      * @param connection the dummy connection of which the provided roster belongs to.
      * @param roster the roster (or buddy list) which should be initialized.
      * @throws SmackException 
-     * @throws XmppStringprepException 
      */
-    private void initRoster() throws InterruptedException, XMPPException, SmackException, XmppStringprepException {
+    private void initRoster() throws InterruptedException, XMPPException, SmackException {
         roster.reload();
         while (true) {
             final Stanza sentPacket = connection.getSentPacket();
@@ -557,18 +552,18 @@ public class RosterTest extends InitSmackIm {
                 rosterResult.setStanzaId(rosterRequest.getStanzaId());
 
                 // prepare romeo's roster entry
-                final Item romeo = new Item(JidCreate.from("romeo@example.net"), "Romeo");
+                final Item romeo = new Item("romeo@example.net", "Romeo");
                 romeo.addGroupName("Friends");
                 romeo.setItemType(ItemType.both);
                 rosterResult.addRosterItem(romeo);
 
                 // prepare mercutio's roster entry
-                final Item mercutio = new Item(JidCreate.from("mercutio@example.com"), "Mercutio");
+                final Item mercutio = new Item("mercutio@example.com", "Mercutio");
                 mercutio.setItemType(ItemType.from);
                 rosterResult.addRosterItem(mercutio);
 
                 // prepare benvolio's roster entry
-                final Item benvolio = new Item(JidCreate.from("benvolio@example.net"), "Benvolio");
+                final Item benvolio = new Item("benvolio@example.net", "Benvolio");
                 benvolio.setItemType(ItemType.both);
                 rosterResult.addRosterItem(benvolio);
 
@@ -709,26 +704,44 @@ public class RosterTest extends InitSmackIm {
      * This class can be used to check if the RosterListener was invoked.
      */
     public static class TestRosterListener extends WaitForPacketListener implements RosterListener {
-        private final List<Jid> addressesAdded = new CopyOnWriteArrayList<>();
-        private final List<Jid> addressesDeleted = new CopyOnWriteArrayList<>();
-        private final List<Jid> addressesUpdated = new CopyOnWriteArrayList<>();
+        private final List<String> addressesAdded = new CopyOnWriteArrayList<>();
+        private final List<String> addressesDeleted = new CopyOnWriteArrayList<>();
+        private final List<String> addressesUpdated = new CopyOnWriteArrayList<>();
 
-        public synchronized void entriesAdded(Collection<Jid> addresses) {
+        public synchronized void entriesAdded(Collection<String> addresses) {
             addressesAdded.addAll(addresses);
+            if (SmackConfiguration.DEBUG) {
+                for (String address : addresses) {
+                    System.out.println("Roster entry for " + address + " added.");
+                }
+            }
             reportInvoked();
         }
 
-        public synchronized void entriesDeleted(Collection<Jid> addresses) {
+        public synchronized void entriesDeleted(Collection<String> addresses) {
             addressesDeleted.addAll(addresses);
+            if (SmackConfiguration.DEBUG) {
+                for (String address : addresses) {
+                    System.out.println("Roster entry for " + address + " deleted.");
+                }
+            }
             reportInvoked();
         }
 
-        public synchronized void entriesUpdated(Collection<Jid> addresses) {
+        public synchronized void entriesUpdated(Collection<String> addresses) {
             addressesUpdated.addAll(addresses);
+            if (SmackConfiguration.DEBUG) {
+                for (String address : addresses) {
+                    System.out.println("Roster entry for " + address + " updated.");
+                }
+            }
             reportInvoked();
         }
 
         public void presenceChanged(Presence presence) {
+            if (SmackConfiguration.DEBUG) {
+                System.out.println("Roster presence changed: " + presence.toXML());
+            }
             reportInvoked();
         }
 
@@ -737,7 +750,7 @@ public class RosterTest extends InitSmackIm {
          * 
          * @return the collection of addresses which were added.
          */
-        public Collection<Jid> getAddedAddresses() {
+        public Collection<String> getAddedAddresses() {
             return Collections.unmodifiableCollection(addressesAdded);
         }
 
@@ -746,7 +759,7 @@ public class RosterTest extends InitSmackIm {
          * 
          * @return the collection of addresses which were deleted.
          */
-        public Collection<Jid> getDeletedAddresses() {
+        public Collection<String> getDeletedAddresses() {
             return Collections.unmodifiableCollection(addressesDeleted);
         }
 
@@ -755,41 +768,8 @@ public class RosterTest extends InitSmackIm {
          * 
          * @return the collection of addresses which were updated.
          */
-        public Collection<Jid> getUpdatedAddresses() {
+        public Collection<String> getUpdatedAddresses() {
             return Collections.unmodifiableCollection(addressesUpdated);
-        }
-
-        public boolean addedAddressesContains(String jidString) {
-            Jid jid;
-            try {
-                jid = JidCreate.from(jidString);
-            }
-            catch (XmppStringprepException e) {
-                throw new IllegalArgumentException(e);
-            }
-            return addressesAdded.contains(jid);
-        }
-
-        public boolean deletedAddressesContains(String jidString) {
-            Jid jid;
-            try {
-                jid = JidCreate.from(jidString);
-            }
-            catch (XmppStringprepException e) {
-                throw new IllegalArgumentException(e);
-            }
-            return addressesDeleted.contains(jid);
-        }
-
-        public boolean updatedAddressesContains(String jidString) {
-            Jid jid;
-            try {
-                jid = JidCreate.from(jidString);
-            }
-            catch (XmppStringprepException e) {
-                throw new IllegalArgumentException(e);
-            }
-            return addressesUpdated.contains(jid);
         }
 
         /**

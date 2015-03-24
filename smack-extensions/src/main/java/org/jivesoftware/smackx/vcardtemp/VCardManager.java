@@ -27,11 +27,8 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.packet.IQ;
-import org.jivesoftware.smack.packet.id.StanzaIdUtil;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.vcardtemp.packet.VCard;
-import org.jxmpp.jid.BareJid;
-import org.jxmpp.jid.Jid;
 
 public class VCardManager extends Manager {
     public static final String NAMESPACE = VCard.NAMESPACE;
@@ -73,11 +70,10 @@ public class VCardManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException
-     * @throws InterruptedException 
-     * @deprecated use {@link #isSupported(Jid)} instead.
+     * @deprecated use {@link #isSupported(String)} instead.
      */
     @Deprecated
-    public static boolean isSupported(Jid jid, XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException  {
+    public static boolean isSupported(String jid, XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException  {
         return VCardManager.getInstanceFor(connection).isSupported(jid);
     }
 
@@ -93,15 +89,9 @@ public class VCardManager extends Manager {
      * @throws XMPPErrorException thrown if there was an issue setting the VCard in the server.
      * @throws NoResponseException if there was no response from the server.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void saveVCard(VCard vcard) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
-        // XEP-54 § 3.2 "A user may publish or update his or her vCard by sending an IQ of type "set" with no 'to' address…"
-        vcard.setTo((Jid) null);
+    public void saveVCard(VCard vcard) throws NoResponseException, XMPPErrorException, NotConnectedException {
         vcard.setType(IQ.Type.set);
-        // Also make sure to generate a new stanza id (the given vcard could be a vcard result), in which case we don't
-        // want to use the same stanza id again (although it wouldn't break if we did)
-        vcard.setStanzaId(StanzaIdUtil.newStanzaId());
         connection().createPacketCollectorAndSend(vcard).nextResultOrThrow();
     }
 
@@ -111,9 +101,8 @@ public class VCardManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public VCard loadVCard() throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public VCard loadVCard() throws NoResponseException, XMPPErrorException, NotConnectedException {
         return loadVCard(null);
     }
 
@@ -123,9 +112,8 @@ public class VCardManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException if there was no response from the server.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public VCard loadVCard(BareJid bareJid) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public VCard loadVCard(String bareJid) throws NoResponseException, XMPPErrorException, NotConnectedException {
         VCard vcardRequest = new VCard();
         vcardRequest.setTo(bareJid);
         VCard result = connection().createPacketCollectorAndSend(vcardRequest).nextResultOrThrow();
@@ -140,9 +128,8 @@ public class VCardManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public boolean isSupported(Jid jid) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public boolean isSupported(String jid) throws NoResponseException, XMPPErrorException, NotConnectedException {
         return ServiceDiscoveryManager.getInstanceFor(connection()).supportsFeature(jid, NAMESPACE);
     }
 }

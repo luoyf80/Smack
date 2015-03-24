@@ -16,10 +16,10 @@
  */
 package org.jivesoftware.smackx.json.packet;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.util.XmlStringBuilder;
 
-public abstract class AbstractJsonPacketExtension implements ExtensionElement {
+public abstract class AbstractJsonPacketExtension implements PacketExtension {
 
     private final String json;
 

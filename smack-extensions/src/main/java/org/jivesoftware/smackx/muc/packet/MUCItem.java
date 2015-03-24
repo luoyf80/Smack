@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2003-2007 Jive Software, 2014-2015 Florian Schmaus
+ * Copyright 2003-2007 Jive Software, 2014 Florian Schmaus
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
  */
 package org.jivesoftware.smackx.muc.packet;
 
+import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.NamedElement;
-import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.util.XmlStringBuilder;
 import org.jivesoftware.smackx.muc.MUCAffiliation;
 import org.jivesoftware.smackx.muc.MUCRole;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.parts.Resourcepart;
 
 /**
  * Item child that holds information about roles, affiliation, jids and nicks.
@@ -30,14 +28,14 @@ import org.jxmpp.jid.parts.Resourcepart;
  * @author Gaston Dombiak
  */
 public class MUCItem implements NamedElement {
-    public static final String ELEMENT = Stanza.ITEM;
+    public static final String ELEMENT = IQ.ITEM;
 
     private final MUCAffiliation affiliation;
     private final MUCRole role;
-    private final Jid actor;
+    private final String actor;
     private final String reason;
-    private final Jid jid;
-    private final Resourcepart nick;
+    private final String jid;
+    private final String nick;
 
     public MUCItem(MUCAffiliation affiliation) {
         this(affiliation, null, null, null, null, null);
@@ -47,19 +45,19 @@ public class MUCItem implements NamedElement {
         this(null, role, null, null, null, null);
     }
 
-    public MUCItem(MUCRole role, Resourcepart nick) {
+    public MUCItem(MUCRole role, String nick) {
         this(null, role, null, null, null, nick);
     }
 
-    public MUCItem(MUCAffiliation affiliation, Jid jid, String reason) {
+    public MUCItem(MUCAffiliation affiliation, String jid, String reason) {
         this(affiliation, null, null, reason, jid, null);
     }
 
-    public MUCItem(MUCAffiliation affiliation, Jid jid) {
+    public MUCItem(MUCAffiliation affiliation, String jid) {
         this(affiliation, null, null, null, jid, null);
     }
 
-    public MUCItem(MUCRole role, Resourcepart nick, String reason) {
+    public MUCItem(MUCRole role, String nick, String reason) {
         this(null, role, null, reason, null, nick);
     }
 
@@ -73,8 +71,8 @@ public class MUCItem implements NamedElement {
      * @param jid
      * @param nick
      */
-    public MUCItem(MUCAffiliation affiliation, MUCRole role, Jid actor,
-                    String reason, Jid jid, Resourcepart nick) {
+    public MUCItem(MUCAffiliation affiliation, MUCRole role, String actor,
+                    String reason, String jid, String nick) {
         this.affiliation = affiliation;
         this.role = role;
         this.actor = actor;
@@ -88,7 +86,7 @@ public class MUCItem implements NamedElement {
      * 
      * @return the JID of an occupant in the room that was kicked or banned.
      */
-    public Jid getActor() {
+    public String getActor() {
         return actor;
     }
 
@@ -120,7 +118,7 @@ public class MUCItem implements NamedElement {
      * 
      * @return the room JID by which an occupant is identified within the room.
      */
-    public Jid getJid() {
+    public String getJid() {
         return jid;
     }
 
@@ -130,7 +128,7 @@ public class MUCItem implements NamedElement {
      * 
      * @return the new nickname of an occupant that is changing his/her nickname.
      */
-    public Resourcepart getNick() {
+    public String getNick() {
         return nick;
     }
 
@@ -150,13 +148,15 @@ public class MUCItem implements NamedElement {
         xml.optAttribute("affiliation", getAffiliation());
         xml.optAttribute("jid", getJid());
         xml.optAttribute("nick", getNick());
-        xml.optAttribute("role", getRole());
+        if (role != null && role != MUCRole.none) {
+            xml.attribute("role", getRole());
+        }
         xml.rightAngleBracket();
         xml.optElement("reason", getReason());
         if (getActor() != null) {
             xml.halfOpenElement("actor").attribute("jid", getActor()).closeEmptyElement();
         }
-        xml.closeElement(Stanza.ITEM);
+        xml.closeElement(IQ.ITEM);
         return xml;
     }
 

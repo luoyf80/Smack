@@ -17,10 +17,14 @@
 
 package org.jivesoftware.smackx.disco.provider;
 
+import java.io.IOException;
+
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.disco.packet.DiscoverInfo;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
 * The DiscoverInfoProvider parses Service Discovery information packets.
@@ -31,7 +35,7 @@ public class DiscoverInfoProvider extends IQProvider<DiscoverInfo> {
 
     @Override
     public DiscoverInfo parse(XmlPullParser parser, int initialDepth)
-                    throws Exception {
+                    throws XmlPullParserException, IOException, SmackException {
         DiscoverInfo discoverInfo = new DiscoverInfo();
         boolean done = false;
         DiscoverInfo.Identity identity = null;
@@ -57,7 +61,7 @@ public class DiscoverInfoProvider extends IQProvider<DiscoverInfo> {
                 }
                 // Otherwise, it must be a packet extension.
                 else {
-                    PacketParserUtils.addExtensionElement(discoverInfo, parser);
+                    PacketParserUtils.addPacketExtension(discoverInfo, parser);
                 }
             } else if (eventType == XmlPullParser.END_TAG) {
                 if (parser.getName().equals("identity")) {

@@ -40,7 +40,6 @@ import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smack.util.stringencoder.Base64;
 import org.jivesoftware.smackx.vcardtemp.VCardManager;
-import org.jxmpp.jid.BareJid;
 
 /**
  * A VCard class for use with the
@@ -87,9 +86,9 @@ public class VCard extends IQ {
     public static final String NAMESPACE = "vcard-temp";
 
     private static final Logger LOGGER = Logger.getLogger(VCard.class.getName());
-
+    
     private static final String DEFAULT_MIME_TYPE = "image/jpeg";
-
+    
     /**
      * Phone types:
      * VOICE?, FAX?, PAGER?, MSG?, CELL?, VIDEO?, BBS?, MODEM?, ISDN?, PCS?, PREF?
@@ -404,7 +403,7 @@ public class VCard extends IQ {
     public void setEncodedImage(String encodedAvatar) {
         setAvatar(encodedAvatar, DEFAULT_MIME_TYPE);
     }
-
+    
     /**
      * Return the byte representation of the avatar(if one exists), otherwise returns null if
      * no avatar could be found.
@@ -524,11 +523,10 @@ public class VCard extends IQ {
      * @throws XMPPErrorException thrown if there was an issue setting the VCard in the server.
      * @throws NoResponseException if there was no response from the server.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      * @deprecated use {@link VCardManager#saveVCard(VCard)} instead.
      */
     @Deprecated
-    public void save(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public void save(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException {
         VCardManager.getInstanceFor(connection).saveVCard(this);
     }
 
@@ -538,11 +536,10 @@ public class VCard extends IQ {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      * @deprecated use {@link VCardManager#loadVCard()} instead.
      */
     @Deprecated
-    public void load(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException  {
+    public void load(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException  {
         load(connection, null);
     }
 
@@ -551,11 +548,10 @@ public class VCard extends IQ {
      * @throws XMPPErrorException 
      * @throws NoResponseException if there was no response from the server.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
-     * @deprecated use {@link VCardManager#loadVCard(BareJid)} instead.
+     * @deprecated use {@link VCardManager#loadVCard(String)} instead.
      */
     @Deprecated
-    public void load(XMPPConnection connection, BareJid user) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public void load(XMPPConnection connection, String user) throws NoResponseException, XMPPErrorException, NotConnectedException {
         VCard result = VCardManager.getInstanceFor(connection).loadVCard(user);
         copyFieldsFrom(result);
     }
@@ -569,27 +565,23 @@ public class VCard extends IQ {
         xml.rightAngleBracket();
         if (hasNameField()) {
             xml.openElement("N");
-            xml.optElement("FAMILY", lastName);
-            xml.optElement("GIVEN", firstName);
-            xml.optElement("MIDDLE", middleName);
+            xml.element("FAMILY", lastName);
+            xml.element("GIVEN", firstName);
+            xml.element("MIDDLE", middleName);
             xml.closeElement("N");
         }
         if (hasOrganizationFields()) {
             xml.openElement("ORG");
-            xml.optElement("ORGNAME", organization);
-            xml.optElement("ORGUNIT", organizationUnit);
+            xml.element("ORGNAME", organization);
+            xml.element("ORGUNIT", organizationUnit);
             xml.closeElement("ORG");
         }
         for (Entry<String, String> entry : otherSimpleFields.entrySet()) {
-            xml.optElement(entry.getKey(), entry.getValue());
+            xml.element(entry.getKey(), entry.getValue());
         }
         for (Entry<String, String> entry : otherUnescapableFields.entrySet()) {
-            final String value = entry.getValue();
-            if (value == null) {
-                continue;
-            }
             xml.openElement(entry.getKey());
-            xml.append(value);
+            xml.append(entry.getValue());
             xml.closeElement(entry.getKey());
         }
         if (photoBinval != null) {
@@ -615,36 +607,24 @@ public class VCard extends IQ {
             xml.closeElement("EMAIL");
         }
         for (Entry<String, String> phone : workPhones.entrySet()) {
-            final String number = phone.getValue();
-            if (number == null) {
-                continue;
-            }
             xml.openElement("TEL");
             xml.emptyElement("WORK");
             xml.emptyElement(phone.getKey());
-            xml.element("NUMBER", number);
+            xml.element("NUMBER", phone.getValue());
             xml.closeElement("TEL");
         }
         for (Entry<String, String> phone : homePhones.entrySet()) {
-            final String number = phone.getValue();
-            if (number == null) {
-                continue;
-            }
             xml.openElement("TEL");
             xml.emptyElement("HOME");
             xml.emptyElement(phone.getKey());
-            xml.element("NUMBER", number);
+            xml.element("NUMBER", phone.getValue());
             xml.closeElement("TEL");
         }
         if (!workAddr.isEmpty()) {
             xml.openElement("ADR");
             xml.emptyElement("WORK");
             for (Entry<String, String> entry : workAddr.entrySet()) {
-                final String value = entry.getValue();
-                if (value == null) {
-                    continue;
-                }
-                xml.element(entry.getKey(), value);
+                xml.element(entry.getKey(), entry.getValue());
             }
             xml.closeElement("ADR");
         }
@@ -652,11 +632,7 @@ public class VCard extends IQ {
             xml.openElement("ADR");
             xml.emptyElement("HOME");
             for (Entry<String, String> entry : homeAddr.entrySet()) {
-                final String value = entry.getValue();
-                if (value == null) {
-                    continue;
-                }
-                xml.element(entry.getKey(), value);
+                xml.element(entry.getKey(), entry.getValue());
             }
             xml.closeElement("ADR");
         }

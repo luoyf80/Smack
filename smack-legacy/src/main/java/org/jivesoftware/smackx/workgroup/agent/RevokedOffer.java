@@ -19,8 +19,6 @@ package org.jivesoftware.smackx.workgroup.agent;
 
 import java.util.Date;
 
-import org.jxmpp.jid.Jid;
-
 /**
  * An immutable simple class to embody the information concerning a revoked offer, this is namely
  *  the reason, the workgroup, the userJID, and the timestamp which the message was received.<br>
@@ -29,9 +27,9 @@ import org.jxmpp.jid.Jid;
  */
 public class RevokedOffer {
 
-    private Jid userJID;
-    private Jid userID;
-    private Jid workgroupName;
+    private String userJID;
+    private String userID;
+    private String workgroupName;
     private String sessionID;
     private String reason;
     private Date timestamp;
@@ -45,7 +43,7 @@ public class RevokedOffer {
      * @param reason the server issued message as to why this revocation was issued.
      * @param timestamp the timestamp at which the revocation was issued
      */
-    RevokedOffer(Jid userJID, Jid userID, Jid workgroupName, String sessionID,
+    RevokedOffer(String userJID, String userID, String workgroupName, String sessionID,
             String reason, Date timestamp) {
         super();
 
@@ -57,21 +55,21 @@ public class RevokedOffer {
         this.timestamp = timestamp;
     }
 
-    public Jid getUserJID() {
+    public String getUserJID() {
         return userJID;
     }
 
     /**
      * @return the jid of the user for which this revocation was issued
      */
-    public Jid getUserID() {
+    public String getUserID() {
         return this.userID;
     }
 
     /**
      * @return the fully qualified name of the workgroup
      */
-    public Jid getWorkgroupName() {
+    public String getWorkgroupName() {
         return this.workgroupName;
     }
 

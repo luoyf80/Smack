@@ -23,7 +23,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -57,7 +56,7 @@ public class TcpUdpBridgeClient {
             LOGGER.fine("UDP: " + localUdpSocket.getLocalPort());
         }
         catch (IOException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
         startBridge();
     }
@@ -89,7 +88,7 @@ public class TcpUdpBridgeClient {
 
                 }
                 catch (IOException e) {
-                    LOGGER.log(Level.WARNING, "exception", e);
+                    e.printStackTrace();
                 }
             }
 
@@ -99,10 +98,10 @@ public class TcpUdpBridgeClient {
 
             public void run() {
                 try {
-
+                                       
                     InputStream in = localTcpSocket.getInputStream();
                     InetAddress remoteHost = InetAddress.getByName(remoteUdpHost);
-                    process.start();
+                    process.start();                    
 
                     while (true) {
                         byte[] b = new byte[500];
@@ -123,7 +122,7 @@ public class TcpUdpBridgeClient {
 
                 }
                 catch (IOException e) {
-                    LOGGER.log(Level.WARNING, "exception", e);
+                    e.printStackTrace();
                 }
             }
 

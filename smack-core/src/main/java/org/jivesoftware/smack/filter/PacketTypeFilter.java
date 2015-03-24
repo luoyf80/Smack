@@ -31,10 +31,8 @@ import org.jivesoftware.smack.packet.Presence;
  * </ul>
  *
  * @author Matt Tucker
- * @deprecated use {@link StanzaTypeFilter} instead.
  */
-@Deprecated
-public class PacketTypeFilter implements StanzaFilter {
+public class PacketTypeFilter implements PacketFilter {
 
     public static final PacketTypeFilter PRESENCE = new PacketTypeFilter(Presence.class);
     public static final PacketTypeFilter MESSAGE = new PacketTypeFilter(Message.class);
@@ -55,8 +53,7 @@ public class PacketTypeFilter implements StanzaFilter {
         return packetType.isInstance(packet);
     }
 
-    @Override
     public String toString() {
-        return getClass().getSimpleName() + ": " + packetType.getName();
+        return "PacketTypeFilter: " + packetType.getName();
     }
 }

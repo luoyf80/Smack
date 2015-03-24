@@ -18,7 +18,6 @@ package org.jivesoftware.smackx.disco.packet;
 
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.util.StringUtils;
-import org.jivesoftware.smack.util.TypedCloneable;
 import org.jivesoftware.smack.util.XmlStringBuilder;
 import org.jxmpp.util.XmppStringUtils;
 
@@ -39,7 +38,7 @@ import java.util.Set;
  *
  * @author Gaston Dombiak
  */
-public class DiscoverInfo extends IQ implements TypedCloneable<DiscoverInfo> {
+public class DiscoverInfo extends IQ implements Cloneable {
 
     public static final String ELEMENT = QUERY_ELEMENT;
     public static final String NAMESPACE = "http://jabber.org/protocol/disco#info";
@@ -267,7 +266,7 @@ public class DiscoverInfo extends IQ implements TypedCloneable<DiscoverInfo> {
      * attributes.
      * 
      */
-    public static class Identity implements Comparable<Identity>, TypedCloneable<Identity> {
+    public static class Identity implements Comparable<Identity>, Cloneable {
 
         private final String category;
         private final String type;
@@ -440,7 +439,7 @@ public class DiscoverInfo extends IQ implements TypedCloneable<DiscoverInfo> {
         public int compareTo(DiscoverInfo.Identity other) {
             String otherLang = other.lang == null ? "" : other.lang;
             String thisLang = lang == null ? "" : lang;
-
+            
             // This can be removed once the deprecated constructor is removed.
             String otherType = other.type == null ? "" : other.type;
             String thisType = type == null ? "" : type;
@@ -474,7 +473,7 @@ public class DiscoverInfo extends IQ implements TypedCloneable<DiscoverInfo> {
      * as well as specific feature types of interest, if any (e.g., for the purpose of feature 
      * negotiation).
      */
-    public static class Feature implements TypedCloneable<Feature> {
+    public static class Feature implements Cloneable {
 
         private final String variable;
 

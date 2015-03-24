@@ -21,7 +21,6 @@ import org.jivesoftware.smack.PacketCollector;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.util.StringUtils;
-import org.jxmpp.jid.JidWithLocalpart;
 
 import java.util.Set;
 import java.util.Collections;
@@ -41,7 +40,7 @@ public class Chat {
 
     private ChatManager chatManager;
     private String threadID;
-    private JidWithLocalpart participant;
+    private String participant;
     private final Set<ChatMessageListener> listeners = new CopyOnWriteArraySet<ChatMessageListener>();
 
     /**
@@ -51,7 +50,7 @@ public class Chat {
      * @param participant the user to chat with.
      * @param threadID the thread ID to use.
      */
-    Chat(ChatManager chatManager, JidWithLocalpart participant, String threadID) {
+    Chat(ChatManager chatManager, String participant, String threadID) {
         if (StringUtils.isEmpty(threadID)) {
             throw new IllegalArgumentException("Thread ID must not be null");
         }
@@ -76,7 +75,7 @@ public class Chat {
      *
      * @return the name of the user the chat is occuring with.
      */
-    public JidWithLocalpart getParticipant() {
+    public String getParticipant() {
         return participant;
     }
 
@@ -92,9 +91,8 @@ public class Chat {
      *
      * @param text the text to send.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void sendMessage(String text) throws NotConnectedException, InterruptedException {
+    public void sendMessage(String text) throws NotConnectedException {
         Message message = new Message();
         message.setBody(text);
         sendMessage(message);
@@ -106,9 +104,8 @@ public class Chat {
      *
      * @param message the message to send.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void sendMessage(Message message) throws NotConnectedException, InterruptedException {
+    public void sendMessage(Message message) throws NotConnectedException {
         // Force the recipient, message type, and thread ID since the user elected
         // to send the message through this chat object.
         message.setTo(participant);
@@ -188,7 +185,7 @@ public class Chat {
     public String toString() {
         return "Chat [(participant=" + participant + "), (thread=" + threadID + ")]";
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 1;
@@ -196,7 +193,7 @@ public class Chat {
         hash = hash * 31 + participant.hashCode();
         return hash;
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Chat

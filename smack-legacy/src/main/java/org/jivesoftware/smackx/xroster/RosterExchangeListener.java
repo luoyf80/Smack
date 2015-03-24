@@ -19,8 +19,6 @@ package org.jivesoftware.smackx.xroster;
 
 import java.util.Iterator;
 
-import org.jxmpp.jid.Jid;
-
 /**
  *
  * A listener that is fired anytime a roster exchange is received.
@@ -36,6 +34,6 @@ public interface RosterExchangeListener {
      * @param remoteRosterEntries the entries sent by the user. The entries are instances of 
      * RemoteRosterEntry.
      */
-    public void entriesReceived(Jid from, Iterator<RemoteRosterEntry> remoteRosterEntries);
+    public void entriesReceived(String from, Iterator<RemoteRosterEntry> remoteRosterEntries);
 
 }

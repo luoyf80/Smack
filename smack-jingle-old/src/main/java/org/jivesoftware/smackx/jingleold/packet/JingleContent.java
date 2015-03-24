@@ -21,14 +21,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 
 /**
  * Jingle content.
  * 
  * @author Jeff Williams
  */
-public class JingleContent implements ExtensionElement {
+public class JingleContent implements PacketExtension {
 
     public static final String NODENAME = "content";
     public static final String CREATOR = "creator";

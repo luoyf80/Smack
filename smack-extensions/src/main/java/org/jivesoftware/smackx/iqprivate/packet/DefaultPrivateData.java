@@ -115,7 +115,7 @@ public class DefaultPrivateData implements PrivateData {
         if (map == null) {
             return null;
         }
-        return map.get(name);
+        return (String)map.get(name);
     }
 
     /**

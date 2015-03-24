@@ -16,11 +16,13 @@
  */
 package org.jivesoftware.smackx.si.provider;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.jxmpp.util.XmppDateTime;
 import org.jivesoftware.smackx.si.packet.StreamInitiation;
@@ -28,6 +30,7 @@ import org.jivesoftware.smackx.si.packet.StreamInitiation.File;
 import org.jivesoftware.smackx.xdata.packet.DataForm;
 import org.jivesoftware.smackx.xdata.provider.DataFormProvider;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * The StreamInitiationProvider parses StreamInitiation packets.
@@ -40,7 +43,7 @@ public class StreamInitiationProvider extends IQProvider<StreamInitiation> {
 
     @Override
     public StreamInitiation parse(XmlPullParser parser, int initialDepth)
-                    throws Exception {
+                    throws XmlPullParserException, IOException, SmackException {
 		boolean done = false;
 
 		// si
@@ -95,7 +98,7 @@ public class StreamInitiationProvider extends IQProvider<StreamInitiation> {
                             LOGGER.log(Level.SEVERE, "Failed to parse file size from " + fileSize, e);
                         }
                     }
-
+                    
                     Date fileDate = new Date();
                     if (date != null) {
                         try {
@@ -104,7 +107,7 @@ public class StreamInitiationProvider extends IQProvider<StreamInitiation> {
                             // couldn't parse date, use current date-time
                         }
                     }
-
+                    
                     File file = new File(name, fileSize);
 					file.setHash(hash);
 					file.setDate(fileDate);

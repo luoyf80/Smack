@@ -19,8 +19,6 @@ package org.jivesoftware.smackx.workgroup.packet;
 
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.provider.IQProvider;
-import org.jivesoftware.smack.util.ParserUtils;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -39,7 +37,7 @@ import java.util.List;
  */
 public class AgentWorkgroups extends IQ {
 
-    private Jid agentJID;
+    private String agentJID;
     private List<String> workgroups;
 
     private AgentWorkgroups() {
@@ -52,7 +50,7 @@ public class AgentWorkgroups extends IQ {
      *
      * @param agentJID the id of the agent to get his workgroups.
      */
-    public AgentWorkgroups(Jid agentJID) {
+    public AgentWorkgroups(String agentJID) {
         this();
         this.agentJID = agentJID;
         this.workgroups = new ArrayList<String>();
@@ -65,13 +63,13 @@ public class AgentWorkgroups extends IQ {
      * @param agentJID the id of the agent that can work in the list of workgroups.
      * @param workgroups the list of workgroup JIDs where the agent can work.
      */
-    public AgentWorkgroups(Jid agentJID, List<String> workgroups) {
+    public AgentWorkgroups(String agentJID, List<String> workgroups) {
         this();
         this.agentJID = agentJID;
         this.workgroups = workgroups;
     }
 
-    public Jid getAgentJID() {
+    public String getAgentJID() {
         return agentJID;
     }
 
@@ -105,7 +103,7 @@ public class AgentWorkgroups extends IQ {
 
         @Override
         public AgentWorkgroups parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException {
-            final Jid agentJID = ParserUtils.getJidAttribute(parser);
+            String agentJID = parser.getAttributeValue("", "jid");
             List<String> workgroups = new ArrayList<String>();
 
             boolean done = false;

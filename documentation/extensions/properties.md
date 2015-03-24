@@ -1,4 +1,4 @@
-Stanza Properties
+Packet Properties
 =================
 
 Smack provides an easy mechanism for attaching arbitrary properties to
@@ -20,7 +20,7 @@ jpe.setProperty("favoriteColor", new Color(0, 0, 255));
 // Add an int as a property._
 jpe.setProperty("favoriteNumber", 4);
 // Add the JivePropertiesExtension to the message packet_
-message.addStanzaExtension(jpe);
+message.addPacketExtension(jpe);
 chat.sendMessage(message);
 ```
 
@@ -39,8 +39,8 @@ int favoriteNumber = ((Integer)jpe.getProperty("favoriteNumber")).intValue();
 ```
 
 For convenience `JivePropertiesManager` contains two helper methods namely
-`addProperty(Stanza packet, String name, Object value)` and
-`getProperty(Stanza packet, String name)`.
+`addProperty(Packet packet, String name, Object value)` and
+`getProperty(Packet packet, String name)`.
 
 Objects as Properties
 ---------------------

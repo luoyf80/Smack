@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.jivesoftware.smackx.workgroup.MetaData;
 import org.jivesoftware.smackx.workgroup.util.MetaDataUtils;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -32,7 +32,7 @@ import org.xmlpull.v1.XmlPullParserException;
  *
  * @author loki der quaeler
  */
-public class MetaDataProvider extends ExtensionElementProvider<MetaData> {
+public class MetaDataProvider extends PacketExtensionProvider<MetaData> {
 
     /**
      * PacketExtensionProvider implementation

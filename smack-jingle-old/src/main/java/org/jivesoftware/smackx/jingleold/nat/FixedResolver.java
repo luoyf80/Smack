@@ -52,9 +52,8 @@ public class FixedResolver extends TransportResolver {
     /**
      * Resolve the IP address.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public synchronized void resolve(JingleSession session) throws XMPPException, NotConnectedException, InterruptedException {
+    public synchronized void resolve(JingleSession session) throws XMPPException, NotConnectedException {
         if (!isResolving()) {
             setResolveInit();
 

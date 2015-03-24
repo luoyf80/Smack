@@ -18,8 +18,6 @@
 package org.jivesoftware.smackx.workgroup.packet;
 
 import org.jivesoftware.smack.provider.IQProvider;
-import org.jivesoftware.smack.util.ParserUtils;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -45,7 +43,7 @@ public class TranscriptsProvider extends IQProvider<Transcripts> {
 
     @Override
     public Transcripts parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException {
-        Jid userID = ParserUtils.getJidAttribute(parser, "userID");
+        String userID = parser.getAttributeValue("", "userID");
         List<Transcripts.TranscriptSummary> summaries = new ArrayList<Transcripts.TranscriptSummary>();
 
         boolean done = false;

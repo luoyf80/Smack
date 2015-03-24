@@ -17,14 +17,14 @@
 package org.jivesoftware.smack.debugger;
 
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.StanzaListener;
+import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.util.ObservableReader;
 import org.jivesoftware.smack.util.ObservableWriter;
 import org.jivesoftware.smack.util.ReaderListener;
 import org.jivesoftware.smack.util.WriterListener;
-import org.jxmpp.jid.FullJid;
+import org.jxmpp.util.XmppStringUtils;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -35,7 +35,7 @@ public abstract class AbstractDebugger implements SmackDebugger {
 
     private final XMPPConnection connection;
 
-    private final StanzaListener listener;
+    private final PacketListener listener;
     private final ConnectionListener connListener;
     private final ReaderListener readerListener;
     private final WriterListener writerListener;
@@ -67,7 +67,7 @@ public abstract class AbstractDebugger implements SmackDebugger {
         // Create a thread that will listen for all incoming packets and write them to
         // the GUI. This is what we call "interpreted" packet data, since it's the packet
         // data as Smack sees it and not as it's coming in as raw XML.
-        listener = new StanzaListener() {
+        listener = new PacketListener() {
             public void processPacket(Stanza packet) {
                 if (printInterpreted) {
                     log("RCV PKT (" + connection.getConnectionCounter() + "): " + packet.toXML());
@@ -98,13 +98,15 @@ public abstract class AbstractDebugger implements SmackDebugger {
                 log(
                         "XMPPConnection closed due to an exception (" +
                         connection.getConnectionCounter() +
-                        ")", e);
+                        ")");
+                e.printStackTrace();
             }
             public void reconnectionFailed(Exception e) {
                 log(
                         "Reconnection failed due to an exception (" +
                         connection.getConnectionCounter() +
-                        ")", e);
+                        ")");
+                e.printStackTrace();
             }
             public void reconnectionSuccessful() {
                 log(
@@ -123,8 +125,6 @@ public abstract class AbstractDebugger implements SmackDebugger {
 
     protected abstract void log(String logMessage);
 
-    protected abstract void log(String logMessage, Throwable throwable);
-
     public Reader newConnectionReader(Reader newReader) {
         reader.removeReaderListener(readerListener);
         ObservableReader debugReader = new ObservableReader(newReader);
@@ -141,9 +141,8 @@ public abstract class AbstractDebugger implements SmackDebugger {
         return writer;
     }
 
-    @Override
-    public void userHasLogged(FullJid user) {
-        String localpart = user.getLocalpart().toString();
+    public void userHasLogged(String user) {
+        String localpart = XmppStringUtils.parseLocalpart(user);
         boolean isAnonymous = "".equals(localpart);
         String title =
                 "User logged (" + connection.getConnectionCounter() + "): "
@@ -152,7 +151,7 @@ public abstract class AbstractDebugger implements SmackDebugger {
                 + connection.getServiceName()
                 + ":"
                 + connection.getPort();
-        title += "/" + user.getResourcepart();
+        title += "/" + XmppStringUtils.parseResource(user);
         log(title);
         // Add the connection listener to the connection so that the debugger can be notified
         // whenever the connection is closed.
@@ -167,11 +166,11 @@ public abstract class AbstractDebugger implements SmackDebugger {
         return writer;
     }
 
-    public StanzaListener getReaderListener() {
+    public PacketListener getReaderListener() {
         return listener;
     }
 
-    public StanzaListener getWriterListener() {
+    public PacketListener getWriterListener() {
         return null;
     }
 }

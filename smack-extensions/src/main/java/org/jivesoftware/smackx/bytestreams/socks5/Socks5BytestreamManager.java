@@ -21,12 +21,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 
@@ -53,7 +51,6 @@ import org.jivesoftware.smackx.disco.packet.DiscoverInfo;
 import org.jivesoftware.smackx.disco.packet.DiscoverItems;
 import org.jivesoftware.smackx.disco.packet.DiscoverItems.Item;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
-import org.jxmpp.jid.Jid;
 
 /**
  * The Socks5BytestreamManager class handles establishing SOCKS5 Bytestreams as specified in the <a
@@ -66,16 +63,16 @@ import org.jxmpp.jid.Jid;
  * The stream host is a specialized SOCKS5 proxy setup on a server, or, the initiator can act as the
  * stream host.
  * <p>
- * To establish a SOCKS5 Bytestream invoke the {@link #establishSession(Jid)} method. This will
+ * To establish a SOCKS5 Bytestream invoke the {@link #establishSession(String)} method. This will
  * negotiate a SOCKS5 Bytestream with the given target JID and return a socket.
  * <p>
  * If a session ID for the SOCKS5 Bytestream was already negotiated (e.g. while negotiating a file
- * transfer) invoke {@link #establishSession(Jid, String)}.
+ * transfer) invoke {@link #establishSession(String, String)}.
  * <p>
  * To handle incoming SOCKS5 Bytestream requests add an {@link Socks5BytestreamListener} to the
  * manager. There are two ways to add this listener. If you want to be informed about incoming
  * SOCKS5 Bytestreams from a specific user add the listener by invoking
- * {@link #addIncomingBytestreamListener(BytestreamListener, Jid)}. If the listener should
+ * {@link #addIncomingBytestreamListener(BytestreamListener, String)}. If the listener should
  * respond to all SOCKS5 Bytestream requests invoke
  * {@link #addIncomingBytestreamListener(BytestreamListener)}.
  * <p>
@@ -138,7 +135,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * assigns a user to a listener that is informed if a bytestream request for this user is
      * received
      */
-    private final Map<Jid, BytestreamListener> userListeners = new ConcurrentHashMap<>();
+    private final Map<String, BytestreamListener> userListeners = new ConcurrentHashMap<String, BytestreamListener>();
 
     /*
      * list of listeners that respond to all bytestream requests if there are not user specific
@@ -156,10 +153,10 @@ public final class Socks5BytestreamManager implements BytestreamManager {
     private int proxyConnectionTimeout = 10000;
 
     /* blacklist of errornous SOCKS5 proxies */
-    private final Set<Jid> proxyBlacklist = Collections.synchronizedSet(new HashSet<Jid>());
+    private final List<String> proxyBlacklist = Collections.synchronizedList(new LinkedList<String>());
 
     /* remember the last proxy that worked to prioritize it */
-    private Jid lastWorkingProxy;
+    private String lastWorkingProxy = null;
 
     /* flag to enable/disable prioritization of last working proxy */
     private boolean proxyPrioritizationEnabled = true;
@@ -249,7 +246,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @param listener the listener to register
      * @param initiatorJID the JID of the user that wants to establish a SOCKS5 Bytestream
      */
-    public void addIncomingBytestreamListener(BytestreamListener listener, Jid initiatorJID) {
+    public void addIncomingBytestreamListener(BytestreamListener listener, String initiatorJID) {
         this.userListeners.put(initiatorJID, listener);
     }
 
@@ -395,7 +392,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * the data to be sent.
      * <p>
      * To establish a SOCKS5 Bytestream after negotiation the kind of data to be sent (e.g. file
-     * transfer) use {@link #establishSession(Jid, String)}.
+     * transfer) use {@link #establishSession(String, String)}.
      * 
      * @param targetJID the JID of the user a SOCKS5 Bytestream should be established
      * @return the Socket to send/receive data to/from the user
@@ -405,7 +402,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @throws InterruptedException if the current thread was interrupted while waiting
      * @throws SmackException if there was no response from the server.
      */
-    public Socks5BytestreamSession establishSession(Jid targetJID) throws XMPPException,
+    public Socks5BytestreamSession establishSession(String targetJID) throws XMPPException,
                     IOException, InterruptedException, SmackException {
         String sessionID = getNextSessionID();
         return establishSession(targetJID, sessionID);
@@ -424,7 +421,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @throws SmackException if the target does not support SOCKS5.
      * @throws XMPPException 
      */
-    public Socks5BytestreamSession establishSession(Jid targetJID, String sessionID)
+    public Socks5BytestreamSession establishSession(String targetJID, String sessionID)
                     throws IOException, InterruptedException, NoResponseException, SmackException, XMPPException{
 
         XMPPErrorException discoveryException = null;
@@ -433,7 +430,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
             throw new FeatureNotSupportedException("SOCKS5 Bytestream", targetJID);
         }
 
-        List<Jid> proxies = new ArrayList<>();
+        List<String> proxies = new ArrayList<String>();
         // determine SOCKS5 proxies from XMPP-server
         try {
             proxies.addAll(determineProxies());
@@ -530,9 +527,8 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    private boolean supportsSocks5(Jid targetJID) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    private boolean supportsSocks5(String targetJID) throws NoResponseException, XMPPErrorException, NotConnectedException {
         return ServiceDiscoveryManager.getInstanceFor(connection).supportsFeature(targetJID, Bytestream.NAMESPACE);
     }
 
@@ -544,12 +540,11 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @throws XMPPErrorException if there was an error querying the XMPP server for SOCKS5 proxies
      * @throws NoResponseException if there was no response from the server.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    private List<Jid> determineProxies() throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    private List<String> determineProxies() throws NoResponseException, XMPPErrorException, NotConnectedException {
         ServiceDiscoveryManager serviceDiscoveryManager = ServiceDiscoveryManager.getInstanceFor(this.connection);
 
-        List<Jid> proxies = new ArrayList<>();
+        List<String> proxies = new ArrayList<String>();
 
         // get all items from XMPP server
         DiscoverItems discoverItems = serviceDiscoveryManager.discoverItems(this.connection.getServiceName());
@@ -594,7 +589,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @param proxies a list of SOCKS5 proxy JIDs
      * @return a list of stream hosts containing the IP address an the port
      */
-    private List<StreamHost> determineStreamHostInfos(List<Jid> proxies) {
+    private List<StreamHost> determineStreamHostInfos(List<String> proxies) {
         List<StreamHost> streamHosts = new ArrayList<StreamHost>();
 
         // add local proxy on first position if exists
@@ -604,7 +599,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
         }
 
         // query SOCKS5 proxies for network settings
-        for (Jid proxy : proxies) {
+        for (String proxy : proxies) {
             Bytestream streamHostRequest = createStreamHostRequest(proxy);
             try {
                 Bytestream response = (Bytestream) connection.createPacketCollectorAndSend(
@@ -626,7 +621,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @param proxy the proxy to query
      * @return IQ packet to query a SOCKS5 proxy its network settings
      */
-    private static Bytestream createStreamHostRequest(Jid proxy) {
+    private Bytestream createStreamHostRequest(String proxy) {
         Bytestream request = new Bytestream();
         request.setType(IQ.Type.get);
         request.setTo(proxy);
@@ -681,7 +676,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @param streamHosts a list of SOCKS5 proxies the target should connect to
      * @return a SOCKS5 Bytestream initialization request packet
      */
-    private static Bytestream createBytestreamInitiation(String sessionID, Jid targetJID,
+    private Bytestream createBytestreamInitiation(String sessionID, String targetJID,
                     List<StreamHost> streamHosts) {
         Bytestream initiation = new Bytestream(sessionID);
 
@@ -697,7 +692,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
     }
 
     /**
-     * Responses to the given packet's sender with an XMPP error that a SOCKS5 Bytestream is not
+     * Responses to the given packet's sender with a XMPP error that a SOCKS5 Bytestream is not
      * accepted.
      * <p>
      * Specified in XEP-65 5.3.1 (Example 13)
@@ -705,12 +700,11 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * 
      * @param packet Packet that should be answered with a not-acceptable error
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    protected void replyRejectPacket(IQ packet) throws NotConnectedException, InterruptedException {
+    protected void replyRejectPacket(IQ packet) throws NotConnectedException {
         XMPPError xmppError = new XMPPError(XMPPError.Condition.not_acceptable);
         IQ errorIQ = IQ.createErrorResponse(packet, xmppError);
-        this.connection.sendStanza(errorIQ);
+        this.connection.sendPacket(errorIQ);
     }
 
     /**
@@ -738,7 +732,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * 
      * @return a new unique session ID
      */
-    private static String getNextSessionID() {
+    private String getNextSessionID() {
         StringBuilder buffer = new StringBuilder();
         buffer.append(SESSION_ID_PREFIX);
         buffer.append(Math.abs(randomGenerator.nextLong()));
@@ -761,7 +755,7 @@ public final class Socks5BytestreamManager implements BytestreamManager {
      * @param initiator the initiator's JID
      * @return the listener
      */
-    protected BytestreamListener getUserListener(Jid initiator) {
+    protected BytestreamListener getUserListener(String initiator) {
         return this.userListeners.get(initiator);
     }
 

@@ -37,7 +37,7 @@ import org.jivesoftware.smack.packet.Stanza;
 /**
  * This class can be used in conjunction with a mocked XMPP connection (
  * {@link ConnectionUtils#createMockedConnection(Protocol, String, String)}) to
- * verify an XMPP protocol. This can be accomplished in the following was:
+ * verify a XMPP protocol. This can be accomplished in the following was:
  * <ul>
  * <li>add responses to packets sent over the mocked XMPP connection by the
  * method to test in the order the tested method awaits them</li>
@@ -51,8 +51,8 @@ import org.jivesoftware.smack.packet.Stanza;
  * <code>
  * public void methodToTest() {
  *   Packet packet = new Packet(); // create an XMPP packet
- *   PacketCollector collector = connection.createPacketCollector(new StanzaIdFilter());
- *   connection.sendStanza(packet);
+ *   PacketCollector collector = connection.createPacketCollector(new PacketIDFilter());
+ *   connection.sendPacket(packet);
  *   Packet reply = collector.nextResult();
  * }
  * 
@@ -124,7 +124,6 @@ public class Protocol {
      */
     @SuppressWarnings("unchecked")
     public void verifyAll() {
-        // CHECKSTYLE:OFF
         assertEquals(requests.size(), responsesList.size());
 
         if (printProtocol)
@@ -155,7 +154,6 @@ public class Protocol {
         }
         if (printProtocol)
             System.out.println("=================== End =================\n");
-        // CHECKSTYLE:ON
     }
 
     /**

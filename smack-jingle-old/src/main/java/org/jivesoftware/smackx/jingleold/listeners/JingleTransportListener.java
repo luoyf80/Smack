@@ -35,10 +35,9 @@ public interface JingleTransportListener extends JingleListener {
      * @param remote The transport candidate that has been used for
      *               transmitting to the remote machine
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
     public void transportEstablished(TransportCandidate local,
-                                     TransportCandidate remote) throws NotConnectedException, InterruptedException;
+                                     TransportCandidate remote) throws NotConnectedException;
 
     /**
      * Notification that a transport must be cancelled.

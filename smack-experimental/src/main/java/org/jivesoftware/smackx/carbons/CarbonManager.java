@@ -25,7 +25,7 @@ import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.ConnectionCreationListener;
 import org.jivesoftware.smack.Manager;
-import org.jivesoftware.smack.StanzaListener;
+import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
@@ -58,7 +58,7 @@ public class CarbonManager extends Manager {
             }
         });
     }
-
+    
     private volatile boolean enabled_state = false;
 
     private CarbonManager(XMPPConnection connection) {
@@ -102,9 +102,8 @@ public class CarbonManager extends Manager {
      * @throws NotConnectedException 
      * @throws XMPPErrorException 
      * @throws NoResponseException 
-     * @throws InterruptedException 
      */
-    public boolean isSupportedByServer() throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public boolean isSupportedByServer() throws NoResponseException, XMPPErrorException, NotConnectedException {
         return ServiceDiscoveryManager.getInstanceFor(connection()).serverSupportsFeature(CarbonExtension.NAMESPACE);
     }
 
@@ -116,12 +115,11 @@ public class CarbonManager extends Manager {
      *
      * @param new_state whether carbons should be enabled or disabled
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void sendCarbonsEnabled(final boolean new_state) throws NotConnectedException, InterruptedException {
+    public void sendCarbonsEnabled(final boolean new_state) throws NotConnectedException {
         IQ setIQ = carbonsEnabledIQ(new_state);
 
-        connection().sendIqWithResponseCallback(setIQ, new StanzaListener() {
+        connection().sendIqWithResponseCallback(setIQ, new PacketListener() {
             public void processPacket(Stanza packet) {
                 enabled_state = new_state;
             }
@@ -139,11 +137,10 @@ public class CarbonManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      *
      */
     public synchronized void setCarbonsEnabled(final boolean new_state) throws NoResponseException,
-                    XMPPErrorException, NotConnectedException, InterruptedException {
+                    XMPPErrorException, NotConnectedException {
         if (enabled_state == new_state)
             return;
 
@@ -158,9 +155,8 @@ public class CarbonManager extends Manager {
      *
      * @throws XMPPException 
      * @throws SmackException if there was no response from the server.
-     * @throws InterruptedException 
      */
-    public void enableCarbons() throws XMPPException, SmackException, InterruptedException {
+    public void enableCarbons() throws XMPPException, SmackException {
         setCarbonsEnabled(true);
     }
 
@@ -169,9 +165,8 @@ public class CarbonManager extends Manager {
      *
      * @throws XMPPException 
      * @throws SmackException if there was no response from the server.
-     * @throws InterruptedException 
      */
-    public void disableCarbons() throws XMPPException, SmackException, InterruptedException {
+    public void disableCarbons() throws XMPPException, SmackException {
         setCarbonsEnabled(false);
     }
 

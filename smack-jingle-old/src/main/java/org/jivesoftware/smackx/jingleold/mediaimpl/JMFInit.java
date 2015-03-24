@@ -90,9 +90,10 @@ public class JMFInit extends Frame implements Runnable {
             tempDir = args[0];
 
             message("Setting cache directory to " + tempDir);
+            Registry r = new Registry();
             try {
-                Registry.set("secure.cacheDir", tempDir);
-                Registry.commit();
+                r.set("secure.cacheDir", tempDir);
+                r.commit();
 
                 message("Updated registry");
             }
@@ -206,7 +207,6 @@ public class JMFInit extends Frame implements Runnable {
                 PlugInManager.addPlugIn(dar, inputFormats, new Format[0],
                         plType);
                 // Move it to the top of the list
-                @SuppressWarnings("unchecked")
                 Vector<String> rendList = PlugInManager.getPlugInList(null, null,
                         plType);
                 int listSize = rendList.size();
@@ -244,7 +244,6 @@ public class JMFInit extends Frame implements Runnable {
             if (rend instanceof ExclusiveUse
                     && !((ExclusiveUse) rend).isExclusive()) {
                 // sol8+, DAR supports mixing
-                @SuppressWarnings("unchecked")
                 Vector<String> rendList = PlugInManager.getPlugInList(null, null,
                         plType);
                 int listSize = rendList.size();
@@ -252,7 +251,7 @@ public class JMFInit extends Frame implements Runnable {
                 String rname = null;
 
                 for (int i = 0; i < listSize; i++) {
-                    rname = rendList.elementAt(i);
+                    rname = (String) (rendList.elementAt(i));
                     if (rname.equals(dar)) { // DAR is in the registry
                         found = true;
                         rendList.removeElementAt(i);

@@ -19,10 +19,7 @@ package org.jivesoftware.smackx.bytestreams.socks5.provider;
 import java.io.IOException;
 
 import org.jivesoftware.smack.provider.IQProvider;
-import org.jivesoftware.smack.util.ParserUtils;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream;
-import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream.Mode;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -44,7 +41,7 @@ public class BytestreamsProvider extends IQProvider<Bytestream> {
         String mode = parser.getAttributeValue("", "mode");
 
         // streamhost
-        Jid JID = null;
+        String JID = null;
         String host = null;
         String port = null;
 
@@ -55,15 +52,15 @@ public class BytestreamsProvider extends IQProvider<Bytestream> {
             elementName = parser.getName();
             if (eventType == XmlPullParser.START_TAG) {
                 if (elementName.equals(Bytestream.StreamHost.ELEMENTNAME)) {
-                    JID = ParserUtils.getJidAttribute(parser);
+                    JID = parser.getAttributeValue("", "jid");
                     host = parser.getAttributeValue("", "host");
                     port = parser.getAttributeValue("", "port");
                 }
                 else if (elementName.equals(Bytestream.StreamHostUsed.ELEMENTNAME)) {
-                    toReturn.setUsedHost(ParserUtils.getJidAttribute(parser));
+                    toReturn.setUsedHost(parser.getAttributeValue("", "jid"));
                 }
                 else if (elementName.equals(Bytestream.Activate.ELEMENTNAME)) {
-                    toReturn.setToActivate(ParserUtils.getJidAttribute(parser));
+                    toReturn.setToActivate(parser.getAttributeValue("", "jid"));
                 }
             }
             else if (eventType == XmlPullParser.END_TAG) {
@@ -84,11 +81,7 @@ public class BytestreamsProvider extends IQProvider<Bytestream> {
             }
         }
 
-        if (mode == null) {
-            toReturn.setMode(Mode.tcp);
-        } else {
-            toReturn.setMode((Bytestream.Mode.fromName(mode)));
-        }
+        toReturn.setMode((Bytestream.Mode.fromName(mode)));
         toReturn.setSessionID(id);
         return toReturn;
     }

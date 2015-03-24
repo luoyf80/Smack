@@ -18,7 +18,6 @@
 package org.jivesoftware.smack.roster;
 
 import org.jivesoftware.smack.packet.Presence;
-import org.jxmpp.jid.Jid;
 
 import java.util.Collection;
 
@@ -36,21 +35,21 @@ public interface RosterListener {
      *
      * @param addresses the XMPP addresses of the contacts that have been added to the roster.
      */
-    public void entriesAdded(Collection<Jid> addresses);
+    public void entriesAdded(Collection<String> addresses);
 
     /**
      * Called when a roster entries are updated.
      *
      * @param addresses the XMPP addresses of the contacts whose entries have been updated.
      */
-    public void entriesUpdated(Collection<Jid> addresses);
+    public void entriesUpdated(Collection<String> addresses);
 
     /**
      * Called when a roster entries are removed.
      *
      * @param addresses the XMPP addresses of the contacts that have been removed from the roster.
      */
-    public void entriesDeleted(Collection<Jid> addresses);
+    public void entriesDeleted(Collection<String> addresses);
 
     /**
      * Called when the presence of a roster entry is changed. Care should be taken
@@ -75,7 +74,7 @@ public interface RosterListener {
      * presence packets will not cause this method to be called.
      *
      * @param presence the presence that changed.
-     * @see Roster#getPresence(Jid)
+     * @see Roster#getPresence(String)
      */
     public void presenceChanged(Presence presence);
 }

@@ -58,7 +58,7 @@ public class ContentNegotiator extends JingleNegotiator {
         transportNegotiators = new ArrayList<TransportNegotiator>();
     }
 
-    public List<IQ> dispatchIncomingPacket(IQ iq, String id) throws XMPPException, SmackException, InterruptedException {
+    public List<IQ> dispatchIncomingPacket(IQ iq, String id) throws XMPPException, SmackException {
         List<IQ> responses = new ArrayList<IQ>();
 
         // First only process IQ packets that contain <content> stanzas that
@@ -255,7 +255,7 @@ public class ContentNegotiator extends JingleNegotiator {
         return result;
     }
 
-    public void triggerContentEstablished() throws NotConnectedException, InterruptedException {
+    public void triggerContentEstablished() throws NotConnectedException {
 
         PayloadType bestCommonAudioPt = getMediaNegotiator().getBestCommonAudioPt();
         TransportCandidate bestRemoteCandidate = getTransportNegotiator().getBestRemoteCandidate();
@@ -268,9 +268,8 @@ public class ContentNegotiator extends JingleNegotiator {
     /**
      * Trigger a session established event.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    private void triggerContentEstablished(PayloadType pt, TransportCandidate rc, TransportCandidate lc) throws NotConnectedException, InterruptedException {
+    private void triggerContentEstablished(PayloadType pt, TransportCandidate rc, TransportCandidate lc) throws NotConnectedException {
 
         // Let the session know that we've established a content/media segment.
         JingleSession session = getSession();

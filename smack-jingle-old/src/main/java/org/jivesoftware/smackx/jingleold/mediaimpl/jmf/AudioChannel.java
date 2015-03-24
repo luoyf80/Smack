@@ -21,7 +21,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.media.Codec;
@@ -70,7 +69,7 @@ import org.jivesoftware.smackx.jingleold.media.JingleMediaSession;
 public class AudioChannel {
 
 	private static final Logger LOGGER = Logger.getLogger(AudioChannel.class.getName());
-
+	
 	private MediaLocator locator;
     private String localIpAddress;
     private String remoteIpAddress;
@@ -174,7 +173,7 @@ public class AudioChannel {
                 }
             }
             catch (Exception e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
         }
     }
@@ -203,11 +202,11 @@ public class AudioChannel {
             processor = javax.media.Manager.createProcessor(ds);
         }
         catch (NoProcessorException npe) {
-            LOGGER.log(Level.WARNING, "exception", npe);
+            npe.printStackTrace();
             return "Couldn't create processor";
         }
         catch (IOException ioe) {
-            LOGGER.log(Level.WARNING, "exception", ioe);
+            ioe.printStackTrace();
             return "IOException creating processor";
         }
 
@@ -216,7 +215,7 @@ public class AudioChannel {
         if (!result){
             return "Couldn't configure processor";
         }
-
+        
         // Get the tracks from the processor
         TrackControl[] tracks = processor.getTrackControls();
 
@@ -278,7 +277,7 @@ public class AudioChannel {
                                     tracks[i].setCodecChain(codec);
                                 }
                                 catch (UnsupportedPlugInException e) {
-                                    LOGGER.log(Level.WARNING, "exception", e);
+                                    e.printStackTrace();
                                 }
                             }
 
@@ -395,7 +394,7 @@ public class AudioChannel {
 
             }
             catch (Exception e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
                 return e.getMessage();
             }
         }
@@ -422,7 +421,7 @@ public class AudioChannel {
                 }
             }
             catch (IOException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
 
         }
@@ -515,7 +514,7 @@ public class AudioChannel {
                 Thread.sleep(5000);
             }
             catch (InterruptedException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
 
             audioChannel0.setTrasmit(false);
@@ -525,7 +524,7 @@ public class AudioChannel {
                 Thread.sleep(5000);
             }
             catch (InterruptedException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
 
             audioChannel0.setTrasmit(true);
@@ -535,7 +534,7 @@ public class AudioChannel {
                 Thread.sleep(5000);
             }
             catch (InterruptedException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
 
             audioChannel0.stop();
@@ -543,7 +542,7 @@ public class AudioChannel {
 
         }
         catch (UnknownHostException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
 
     }

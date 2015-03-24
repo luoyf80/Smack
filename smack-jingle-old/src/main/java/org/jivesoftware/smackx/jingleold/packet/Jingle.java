@@ -19,7 +19,6 @@ package org.jivesoftware.smackx.jingleold.packet;
 
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smackx.jingleold.JingleActionEnum;
-import org.jxmpp.jid.Jid;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,12 +51,12 @@ public class Jingle extends IQ {
 
     private JingleActionEnum action; // The action associated to the Jingle
 
-    private Jid initiator; // The initiator as a "user@host/resource"
+    private String initiator; // The initiator as a "user@host/resource"
 
-    private Jid responder; // The responder
+    private String responder; // The responder
 
     // Sub-elements of a Jingle object.
-
+    
     private final List<JingleContent> contents = new ArrayList<JingleContent>();
 
     private JingleContentInfo contentInfo;
@@ -282,7 +281,7 @@ public class Jingle extends IQ {
      *
      * @return the initiator
      */
-    public Jid getInitiator() {
+    public String getInitiator() {
         return initiator;
     }
 
@@ -293,7 +292,7 @@ public class Jingle extends IQ {
      *
      * @param initiator the initiator to set
      */
-    public void setInitiator(final Jid initiator) {
+    public void setInitiator(final String initiator) {
         this.initiator = initiator;
     }
 
@@ -304,7 +303,7 @@ public class Jingle extends IQ {
      *
      * @return the responder
      */
-    public Jid getResponder() {
+    public String getResponder() {
         return responder;
     }
 
@@ -315,7 +314,7 @@ public class Jingle extends IQ {
      *
      * @param resp the responder to set
      */
-    public void setResponder(final Jid resp) {
+    public void setResponder(final String resp) {
         responder = resp;
     }
 
@@ -326,7 +325,7 @@ public class Jingle extends IQ {
      * @param initiator The initiator
      * @return A hash key
      */
-    public static int getSessionHash(final String sid, final Jid initiator) {
+    public static int getSessionHash(final String sid, final String initiator) {
         final int PRIME = 31;
         int result = 1;
         result = PRIME * result + (initiator == null ? 0 : initiator.hashCode());
@@ -353,7 +352,7 @@ public class Jingle extends IQ {
             buf.append(" sid=\"").append(getSid()).append("\"");
         }
         buf.append(">");
-
+ 
         synchronized (contents) {
             for (JingleContent content : contents) {
                 buf.append(content.toXML());

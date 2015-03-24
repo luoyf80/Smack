@@ -16,14 +16,17 @@
  */
 package org.jivesoftware.smack.provider;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * 
@@ -58,7 +61,7 @@ import org.xmlpull.v1.XmlPullParser;
  * <tt>ItemsProvider</tt> extends {@link EmbeddedExtensionProvider}
  * <tt>ItemProvider</tt> extends {@link EmbeddedExtensionProvider}
  * and
- * AtomProvider extends {@link ExtensionElementProvider}
+ * AtomProvider extends {@link PacketExtensionProvider}
  * 
  * These classes are then registered in the meta-inf/smack.providers file
  * as follows.
@@ -78,10 +81,11 @@ import org.xmlpull.v1.XmlPullParser;
  * 
  * @author Robin Collier
  */
-public abstract class EmbeddedExtensionProvider<PE extends ExtensionElement> extends ExtensionElementProvider<PE> {
+public abstract class EmbeddedExtensionProvider<PE extends PacketExtension> extends PacketExtensionProvider<PE> {
 
     @Override
-    public final PE parse(XmlPullParser parser, int initialDepth) throws Exception {
+    public final PE parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException,
+                    SmackException {
         final String namespace = parser.getNamespace();
         final String name = parser.getName();
         final int attributeCount = parser.getAttributeCount();
@@ -91,13 +95,13 @@ public abstract class EmbeddedExtensionProvider<PE extends ExtensionElement> ext
             attMap.put(parser.getAttributeName(i), parser.getAttributeValue(i));
         }
 
-        List<ExtensionElement> extensions = new ArrayList<>();
+        List<PacketExtension> extensions = new ArrayList<>();
         int event;
         do {
             event = parser.next();
 
             if (event == XmlPullParser.START_TAG)
-                PacketParserUtils.addExtensionElement(extensions, parser);
+                PacketParserUtils.addPacketExtension(extensions, parser);
         }
         while (!(event == XmlPullParser.END_TAG && parser.getDepth() == initialDepth));
 
@@ -105,5 +109,5 @@ public abstract class EmbeddedExtensionProvider<PE extends ExtensionElement> ext
     }
 
     protected abstract PE createReturnExtension(String currentElement, String currentNamespace,
-                    Map<String, String> attributeMap, List<? extends ExtensionElement> content);
+                    Map<String, String> attributeMap, List<? extends PacketExtension> content);
 }

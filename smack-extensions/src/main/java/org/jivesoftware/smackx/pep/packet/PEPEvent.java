@@ -17,7 +17,7 @@
 
 package org.jivesoftware.smackx.pep.packet;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 
 /**
  * Represents XMPP Personal Event Protocol packets.<p>
@@ -27,7 +27,7 @@ import org.jivesoftware.smack.packet.ExtensionElement;
  *
  * @author Jeff Williams
  */
-public class PEPEvent implements ExtensionElement {
+public class PEPEvent implements PacketExtension {
 
     PEPItem item;
 
@@ -48,7 +48,7 @@ public class PEPEvent implements ExtensionElement {
 
         this.item = item;
     }
-
+    
     public void addPEPItem(PEPItem item) {
         this.item = item;
     }

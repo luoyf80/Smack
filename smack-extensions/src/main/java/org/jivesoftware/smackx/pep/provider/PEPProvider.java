@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -41,11 +41,11 @@ import org.xmlpull.v1.XmlPullParserException;
  *
  * @author Jeff Williams
  */
-public class PEPProvider extends ExtensionElementProvider<ExtensionElement> {
+public class PEPProvider extends PacketExtensionProvider<PacketExtension> {
 
-    private static final Map<String, ExtensionElementProvider<?>> nodeParsers = new HashMap<String, ExtensionElementProvider<?>>();
+    private static final Map<String, PacketExtensionProvider<?>> nodeParsers = new HashMap<String, PacketExtensionProvider<?>>();
 
-    public static void registerPEPParserExtension(String node, ExtensionElementProvider<?> pepItemParser) {
+    public static void registerPEPParserExtension(String node, PacketExtensionProvider<?> pepItemParser) {
         nodeParsers.put(node, pepItemParser);
     }
 
@@ -60,9 +60,9 @@ public class PEPProvider extends ExtensionElementProvider<ExtensionElement> {
      * @throws SmackException 
      */
     @Override
-    public ExtensionElement parse(XmlPullParser parser, int initialDepth)
-                    throws Exception {
-        ExtensionElement pepItem = null;
+    public PacketExtension parse(XmlPullParser parser, int initialDepth)
+                    throws XmlPullParserException, IOException, SmackException {
+        PacketExtension pepItem = null;
         boolean done = false;
         while (!done) {
             int eventType = parser.next();
@@ -72,7 +72,7 @@ public class PEPProvider extends ExtensionElementProvider<ExtensionElement> {
                     // Figure out the node for this event.
                     String node = parser.getAttributeValue("", "node");
                     // Get the parser for this kind of node, and if found then parse the node.
-                    ExtensionElementProvider<?> nodeParser = nodeParsers.get(node);
+                    PacketExtensionProvider<?> nodeParser = nodeParsers.get(node);
                     if (nodeParser != null) {
                         pepItem = nodeParser.parse(parser);
                     }

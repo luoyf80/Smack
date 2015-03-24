@@ -20,7 +20,6 @@ package org.jivesoftware.smack.packet;
 import java.util.Locale;
 
 import org.jivesoftware.smack.util.Objects;
-import org.jivesoftware.smack.util.TypedCloneable;
 import org.jivesoftware.smack.util.XmlStringBuilder;
 
 /**
@@ -56,7 +55,7 @@ import org.jivesoftware.smack.util.XmlStringBuilder;
  *
  * @author Matt Tucker
  */
-public final class Presence extends Stanza implements TypedCloneable<Presence> {
+public final class Presence extends Stanza {
 
     public static final String ELEMENT = "presence";
 
@@ -87,23 +86,6 @@ public final class Presence extends Stanza implements TypedCloneable<Presence> {
         setStatus(status);
         setPriority(priority);
         setMode(mode);
-    }
-
-    /**
-     * Copy constructor.
-     * <p>
-     * This does not perform a deep clone, as extension elements are shared between the new and old
-     * instance.
-     * </p>
-     *
-     * @param other
-     */
-    public Presence(Presence other) {
-        super(other);
-        this.type = other.type;
-        this.status = other.status;
-        this.priority = other.priority;
-        this.mode = other.mode;
     }
 
     /**
@@ -244,19 +226,6 @@ public final class Presence extends Stanza implements TypedCloneable<Presence> {
         buf.closeElement(ELEMENT);
 
         return buf;
-    }
-
-    /**
-     * Creates and returns a copy of this presence stanza.
-     * <p>
-     * This does not perform a deep clone, as extension elements are shared between the new and old
-     * instance.
-     * </p>
-     * @return a clone of this presence.
-     */
-    @Override
-    public Presence clone() {
-        return new Presence(this);
     }
 
     /**

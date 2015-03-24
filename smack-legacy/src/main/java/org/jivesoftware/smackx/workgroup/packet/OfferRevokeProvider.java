@@ -21,8 +21,6 @@ import java.io.IOException;
 
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.provider.IQProvider;
-import org.jivesoftware.smack.util.ParserUtils;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -36,9 +34,9 @@ public class OfferRevokeProvider extends IQProvider<IQ> {
     @Override
     public OfferRevokePacket parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException {
         // The parser will be positioned on the opening IQ tag, so get the JID attribute.
-        Jid userJID = ParserUtils.getJidAttribute(parser);
+        String userJID = parser.getAttributeValue("", "jid");
         // Default the userID to the JID.
-        Jid userID = userJID;
+        String userID = userJID;
         String reason = null;
         String sessionID = null;
         boolean done = false;
@@ -55,7 +53,7 @@ public class OfferRevokeProvider extends IQProvider<IQ> {
             }
             else if ((eventType == XmlPullParser.START_TAG)
                          && parser.getName().equals(UserID.ELEMENT_NAME)) {
-                userID = ParserUtils.getJidAttribute(parser, "id");
+                userID = parser.getAttributeValue("", "id");
             }
             else if ((eventType == XmlPullParser.END_TAG) && parser.getName().equals(
                     "offer-revoke"))
@@ -69,12 +67,12 @@ public class OfferRevokeProvider extends IQProvider<IQ> {
 
     public class OfferRevokePacket extends IQ {
 
-        private Jid userJID;
-        private Jid userID;
+        private String userJID;
+        private String userID;
         private String sessionID;
         private String reason;
 
-        public OfferRevokePacket (Jid userJID, Jid userID, String cause, String sessionID) {
+        public OfferRevokePacket (String userJID, String userID, String cause, String sessionID) {
             super("offer-revoke", "http://jabber.org/protocol/workgroup");
             this.userJID = userJID;
             this.userID = userID;
@@ -82,11 +80,11 @@ public class OfferRevokeProvider extends IQProvider<IQ> {
             this.sessionID = sessionID;
         }
 
-        public Jid getUserJID() {
+        public String getUserJID() {
             return userJID;
         }
 
-        public Jid getUserID() {
+        public String getUserID() {
             return this.userID;
         }
 

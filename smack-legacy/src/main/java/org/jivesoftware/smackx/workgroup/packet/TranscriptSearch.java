@@ -17,10 +17,14 @@
 
 package org.jivesoftware.smackx.workgroup.packet;
 
+import java.io.IOException;
+
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.SimpleIQ;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * IQ packet for retrieving the transcript search form, submiting the completed search form
@@ -52,7 +56,7 @@ public class TranscriptSearch extends SimpleIQ {
     public static class Provider extends IQProvider<TranscriptSearch> {
 
         @Override
-        public TranscriptSearch parse(XmlPullParser parser, int initialDepth) throws Exception {
+        public TranscriptSearch parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException, SmackException {
             TranscriptSearch answer = new TranscriptSearch();
 
             boolean done = false;
@@ -60,7 +64,7 @@ public class TranscriptSearch extends SimpleIQ {
                 int eventType = parser.next();
                 if (eventType == XmlPullParser.START_TAG) {
                     // Parse the packet extension
-                    PacketParserUtils.addExtensionElement(answer, parser);
+                    PacketParserUtils.addPacketExtension(answer, parser);
                 }
                 else if (eventType == XmlPullParser.END_TAG) {
                     if (parser.getName().equals(ELEMENT_NAME)) {

@@ -16,18 +16,18 @@
  */
 package org.jivesoftware.smack.sm.predicates;
 
-import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.util.StringUtils;
 
-public class OnceForThisStanza implements StanzaFilter {
+public class OnceForThisStanza implements PacketFilter {
 
     private final String id;
     private final XMPPTCPConnection connection;
 
     public static void setup(XMPPTCPConnection connection, Stanza packet) {
-        StanzaFilter packetFilter = new OnceForThisStanza(connection, packet);
+        PacketFilter packetFilter = new OnceForThisStanza(connection, packet);
         connection.addRequestAckPredicate(packetFilter);
     }
 

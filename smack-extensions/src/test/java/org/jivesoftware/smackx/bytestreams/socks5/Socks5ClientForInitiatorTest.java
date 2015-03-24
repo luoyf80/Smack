@@ -42,9 +42,6 @@ import org.jivesoftware.util.Verification;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.jxmpp.jid.DomainBareJid;
-import org.jxmpp.jid.FullJid;
-import org.jxmpp.jid.JidTestUtil;
 
 /**
  * Test for Socks5ClientForInitiator class.
@@ -54,10 +51,10 @@ import org.jxmpp.jid.JidTestUtil;
 public class Socks5ClientForInitiatorTest {
 
     // settings
-    static final FullJid initiatorJID = JidTestUtil.DUMMY_AT_EXAMPLE_ORG_SLASH_DUMMYRESOURCE;
-    static final FullJid targetJID = JidTestUtil.FULL_JID_1_RESOURCE_1;
-    static final DomainBareJid xmppServer = JidTestUtil.DOMAIN_BARE_JID_1;
-    static final DomainBareJid proxyJID = JidTestUtil.MUC_EXAMPLE_ORG;
+    String initiatorJID = "initiator@xmpp-server/Smack";
+    String targetJID = "target@xmpp-server/Smack";
+    String xmppServer = "xmpp-server";
+    String proxyJID = "proxy.xmpp-server";
     String proxyAddress = "127.0.0.1";
     int proxyPort = 7890;
     String sessionID = "session_id";
@@ -72,10 +69,9 @@ public class Socks5ClientForInitiatorTest {
      * Initialize fields used in the tests.
      * @throws XMPPException 
      * @throws SmackException 
-     * @throws InterruptedException 
      */
     @Before
-    public void setup() throws XMPPException, SmackException, InterruptedException {
+    public void setup() throws XMPPException, SmackException {
 
         // build protocol verifier
         protocol = new Protocol();

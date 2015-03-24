@@ -37,10 +37,9 @@ public interface JingleSessionListener extends JingleListener {
      * @param localCandidate            the local candidate where we must listen for connections
      * @param jingleSession Session that called the method
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
     public void sessionEstablished(PayloadType pt, TransportCandidate remoteCandidate,
-                                   TransportCandidate localCandidate, JingleSession jingleSession) throws NotConnectedException, InterruptedException;
+                                   TransportCandidate localCandidate, JingleSession jingleSession) throws NotConnectedException;
 
     /**
      * Notification that the session was declined.
@@ -81,5 +80,5 @@ public interface JingleSessionListener extends JingleListener {
      * @param participant description of the participant
      */
     public void sessionMediaReceived(JingleSession jingleSession, String participant);
-
+        
 }

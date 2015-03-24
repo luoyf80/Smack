@@ -28,10 +28,7 @@ import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smackx.address.packet.MultipleAddresses;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
-import org.jxmpp.jid.BareJid;
-import org.jxmpp.jid.DomainBareJid;
-import org.jxmpp.jid.FullJid;
-import org.jxmpp.jid.Jid;
+import org.jxmpp.util.XmppStringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,9 +64,8 @@ public class MultipleRecipientManager {
      *                       some XEP-33 specific features were requested.
      * @throws NoResponseException if there was no response from the server.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public static void send(XMPPConnection connection, Stanza packet, Collection<? extends Jid> to, Collection<? extends Jid> cc, Collection<? extends Jid> bcc) throws NoResponseException, XMPPErrorException, FeatureNotSupportedException, NotConnectedException, InterruptedException
+    public static void send(XMPPConnection connection, Stanza packet, Collection<String> to, Collection<String> cc, Collection<String> bcc) throws NoResponseException, XMPPErrorException, FeatureNotSupportedException, NotConnectedException
    {
         send(connection, packet, to, cc, bcc, null, null, false);
     }
@@ -97,20 +93,19 @@ public class MultipleRecipientManager {
      * @throws FeatureNotSupportedException if special XEP-33 features where requested, but the
      *         server does not support them.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public static void send(XMPPConnection connection, Stanza packet, Collection<? extends Jid> to, Collection<? extends Jid> cc, Collection<? extends Jid> bcc,
-            Jid replyTo, Jid replyRoom, boolean noReply) throws NoResponseException, XMPPErrorException, FeatureNotSupportedException, NotConnectedException, InterruptedException {
+    public static void send(XMPPConnection connection, Stanza packet, Collection<String> to, Collection<String> cc, Collection<String> bcc,
+            String replyTo, String replyRoom, boolean noReply) throws NoResponseException, XMPPErrorException, FeatureNotSupportedException, NotConnectedException {
         // Check if *only* 'to' is set and contains just *one* entry, in this case extended stanzas addressing is not
         // required at all and we can send it just as normal stanza without needing to add the extension element
         if (to != null && to.size() == 1 && (cc == null || cc.isEmpty()) && (bcc == null || bcc.isEmpty()) && !noReply
                         && StringUtils.isNullOrEmpty(replyTo) && StringUtils.isNullOrEmpty(replyRoom)) {
-            Jid toJid = to.iterator().next();
+            String toJid = to.iterator().next();
             packet.setTo(toJid);
-            connection.sendStanza(packet);
+            connection.sendPacket(packet);
             return;
         }
-        DomainBareJid serviceAddress = getMultipleRecipienServiceAddress(connection);
+        String serviceAddress = getMultipleRecipienServiceAddress(connection);
         if (serviceAddress != null) {
             // Send packet to target users using multiple recipient service provided by the server
             sendThroughService(connection, packet, to, cc, bcc, replyTo, replyRoom, noReply,
@@ -118,8 +113,8 @@ public class MultipleRecipientManager {
         }
         else {
             // Server does not support XEP-33 so try to send the packet to each recipient
-            if (noReply || replyTo != null ||
-                    replyRoom != null) {
+            if (noReply || (replyTo != null && replyTo.trim().length() > 0) ||
+                    (replyRoom != null && replyRoom.trim().length() > 0)) {
                 // Some specified XEP-33 features were requested so throw an exception alerting
                 // the user that this features are not available
                 throw new FeatureNotSupportedException("Extended Stanza Addressing");
@@ -139,9 +134,8 @@ public class MultipleRecipientManager {
      * @param reply      the new message to send as a reply.
      * @throws SmackException 
      * @throws XMPPErrorException 
-     * @throws InterruptedException 
      */
-    public static void reply(XMPPConnection connection, Message original, Message reply) throws SmackException, XMPPErrorException, InterruptedException
+    public static void reply(XMPPConnection connection, Message original, Message reply) throws SmackException, XMPPErrorException
          {
         MultipleRecipientInfo info = getMultipleRecipientInfo(original);
         if (info == null) {
@@ -161,12 +155,12 @@ public class MultipleRecipientManager {
         if (replyAddress != null && replyAddress.getJid() != null) {
             // Send reply to the reply_to address
             reply.setTo(replyAddress.getJid());
-            connection.sendStanza(reply);
+            connection.sendPacket(reply);
         }
         else {
             // Send reply to multiple recipients
-            List<Jid> to = new ArrayList<>(info.getTOAddresses().size());
-            List<Jid> cc = new ArrayList<>(info.getCCAddresses().size());
+            List<String> to = new ArrayList<String>(info.getTOAddresses().size());
+            List<String> cc = new ArrayList<String>(info.getCCAddresses().size());
             for (MultipleAddresses.Address jid : info.getTOAddresses()) {
                 to.add(jid.getJid());
             }
@@ -178,9 +172,9 @@ public class MultipleRecipientManager {
                 to.add(original.getFrom());
             }
             // Remove the sender from the TO/CC list (try with bare JID too)
-            FullJid from = connection.getUser();
+            String from = connection.getUser();
             if (!to.remove(from) && !cc.remove(from)) {
-                BareJid bareJID = from.asBareJid();
+                String bareJID = XmppStringUtils.parseBareJid(from);
                 to.remove(bareJID);
                 cc.remove(bareJID);
             }
@@ -205,44 +199,44 @@ public class MultipleRecipientManager {
     }
 
     private static void sendToIndividualRecipients(XMPPConnection connection, Stanza packet,
-            Collection<? extends Jid> to, Collection<? extends Jid> cc, Collection<? extends Jid> bcc) throws NotConnectedException, InterruptedException {
+            Collection<String> to, Collection<String> cc, Collection<String> bcc) throws NotConnectedException {
         if (to != null) {
-            for (Jid jid : to) {
+            for (String jid : to) {
                 packet.setTo(jid);
-                connection.sendStanza(new PacketCopy(packet.toXML()));
+                connection.sendPacket(new PacketCopy(packet.toXML()));
             }
         }
         if (cc != null) {
-            for (Jid jid : cc) {
+            for (String jid : cc) {
                 packet.setTo(jid);
-                connection.sendStanza(new PacketCopy(packet.toXML()));
+                connection.sendPacket(new PacketCopy(packet.toXML()));
             }
         }
         if (bcc != null) {
-            for (Jid jid : bcc) {
+            for (String jid : bcc) {
                 packet.setTo(jid);
-                connection.sendStanza(new PacketCopy(packet.toXML()));
+                connection.sendPacket(new PacketCopy(packet.toXML()));
             }
         }
     }
 
-    private static void sendThroughService(XMPPConnection connection, Stanza packet, Collection<? extends Jid> to,
-            Collection<? extends Jid> cc, Collection<? extends Jid> bcc, Jid replyTo, Jid replyRoom, boolean noReply,
-            DomainBareJid serviceAddress) throws NotConnectedException, InterruptedException {
+    private static void sendThroughService(XMPPConnection connection, Stanza packet, Collection<String> to,
+            Collection<String> cc, Collection<String> bcc, String replyTo, String replyRoom, boolean noReply,
+            String serviceAddress) throws NotConnectedException {
         // Create multiple recipient extension
         MultipleAddresses multipleAddresses = new MultipleAddresses();
         if (to != null) {
-            for (Jid jid : to) {
+            for (String jid : to) {
                 multipleAddresses.addAddress(MultipleAddresses.Type.to, jid, null, null, false, null);
             }
         }
         if (cc != null) {
-            for (Jid jid : cc) {
+            for (String jid : cc) {
                 multipleAddresses.addAddress(MultipleAddresses.Type.to, jid, null, null, false, null);
             }
         }
         if (bcc != null) {
-            for (Jid jid : bcc) {
+            for (String jid : bcc) {
                 multipleAddresses.addAddress(MultipleAddresses.Type.bcc, jid, null, null, false, null);
             }
         }
@@ -250,11 +244,11 @@ public class MultipleRecipientManager {
             multipleAddresses.setNoReply();
         }
         else {
-            if (replyTo != null) {
+            if (replyTo != null && replyTo.trim().length() > 0) {
                 multipleAddresses
                         .addAddress(MultipleAddresses.Type.replyto, replyTo, null, null, false, null);
             }
-            if (replyRoom != null) {
+            if (replyRoom != null && replyRoom.trim().length() > 0) {
                 multipleAddresses.addAddress(MultipleAddresses.Type.replyroom, replyRoom, null, null,
                         false, null);
             }
@@ -264,7 +258,7 @@ public class MultipleRecipientManager {
         // Add extension to packet
         packet.addExtension(multipleAddresses);
         // Send the packet
-        connection.sendStanza(packet);
+        connection.sendPacket(packet);
     }
 
     /**
@@ -279,11 +273,10 @@ public class MultipleRecipientManager {
      * @throws NoResponseException if there was no response from the server.
      * @throws XMPPErrorException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    private static DomainBareJid getMultipleRecipienServiceAddress(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    private static String getMultipleRecipienServiceAddress(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException {
         ServiceDiscoveryManager sdm = ServiceDiscoveryManager.getInstanceFor(connection);
-        List<DomainBareJid> services = sdm.findServices(MultipleAddresses.NAMESPACE, true, true);
+        List<String> services = sdm.findServices(MultipleAddresses.NAMESPACE, true, true);
         if (services.size() > 0) {
             return services.get(0);
         }

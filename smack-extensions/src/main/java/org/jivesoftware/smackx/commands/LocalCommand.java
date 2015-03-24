@@ -18,7 +18,6 @@
 package org.jivesoftware.smackx.commands;
 
 import org.jivesoftware.smackx.commands.packet.AdHocCommandData;
-import org.jxmpp.jid.Jid;
 
 /**
  * Represents a command that can be executed locally from a remote location. This
@@ -53,7 +52,7 @@ public abstract class LocalCommand extends AdHocCommand {
     /**
      * The full JID of the host of the command.
      */
-    private Jid ownerJID;
+    private String ownerJID;
 
     /**
      * The number of the current stage.
@@ -92,12 +91,12 @@ public abstract class LocalCommand extends AdHocCommand {
      * 
      * @param ownerJID the JID of the owner.
      */
-    public void setOwnerJID(Jid ownerJID) {
+    public void setOwnerJID(String ownerJID) {
         this.ownerJID = ownerJID;
     }
 
     @Override
-    public Jid getOwnerJID() {
+    public String getOwnerJID() {
         return ownerJID;
     }
 
@@ -129,7 +128,7 @@ public abstract class LocalCommand extends AdHocCommand {
      * @param jid the JID to check permissions on.
      * @return true if the user has permission to execute this action.
      */
-    public abstract boolean hasPermission(Jid jid);
+    public abstract boolean hasPermission(String jid);
 
     /**
      * Returns the currently executing stage number. The first stage number is

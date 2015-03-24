@@ -16,11 +16,8 @@
  */
 package org.jivesoftware.smackx.muc.packet;
 
-import java.io.Serializable;
-
 import org.jivesoftware.smack.packet.NamedElement;
 import org.jivesoftware.smack.util.XmlStringBuilder;
-import org.jxmpp.jid.BareJid;
 
 /**
  * Represents a request to the server to destroy a room. The sender of the request should be the
@@ -29,32 +26,18 @@ import org.jxmpp.jid.BareJid;
  * 
  * @author Gaston Dombiak
  */
-public class Destroy implements NamedElement, Serializable {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
-
+public class Destroy implements NamedElement {
     public static final String ELEMENT = "destroy";
 
-    private final String reason;
-    private final BareJid jid;
-
-    public Destroy(Destroy other) {
-        this(other.jid, other.reason);
-    }
-
-    public Destroy(BareJid alternativeJid, String reason) {
-        this.jid = alternativeJid;
-        this.reason = reason;
-    }
+    private String reason;
+    private String jid;
 
     /**
      * Returns the JID of an alternate location since the current room is being destroyed.
      * 
      * @return the JID of an alternate location.
      */
-    public BareJid getJid() {
+    public String getJid() {
         return jid;
     }
 
@@ -65,6 +48,24 @@ public class Destroy implements NamedElement, Serializable {
      */
     public String getReason() {
         return reason;
+    }
+
+    /**
+     * Sets the JID of an alternate location since the current room is being destroyed.
+     * 
+     * @param jid the JID of an alternate location.
+     */
+    public void setJid(String jid) {
+        this.jid = jid;
+    }
+
+    /**
+     * Sets the reason for the room destruction.
+     * 
+     * @param reason the reason for the room destruction.
+     */
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
     @Override
@@ -82,8 +83,4 @@ public class Destroy implements NamedElement, Serializable {
         return ELEMENT;
     }
 
-    @Override
-    public Destroy clone() {
-        return new Destroy(this);
-    }
 }

@@ -23,13 +23,14 @@ import org.jivesoftware.smackx.workgroup.agent.OfferContent;
 import org.jivesoftware.smackx.workgroup.agent.TransferRequest;
 import org.jivesoftware.smackx.workgroup.agent.UserRequest;
 import org.jivesoftware.smackx.workgroup.util.MetaDataUtils;
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.provider.IQProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
-import org.jivesoftware.smack.util.ParserUtils;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class OfferRequestProvider extends IQProvider<IQ> {
     // happen anytime soon.
 
     @Override
-    public OfferRequestPacket parse(XmlPullParser parser, int initialDepth) throws Exception {
+    public OfferRequestPacket parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException, SmackException {
         int eventType = parser.getEventType();
         String sessionID = null;
         int timeout = -1;
@@ -58,9 +59,9 @@ public class OfferRequestProvider extends IQProvider<IQ> {
             // throw exception
         }
 
-        Jid userJID = ParserUtils.getJidAttribute(parser);
+        String userJID = parser.getAttributeValue("", "jid");
         // Default userID to the JID.
-        Jid userID = userJID;
+        String userID = userJID;
 
         while (!done) {
             eventType = parser.next();
@@ -78,20 +79,20 @@ public class OfferRequestProvider extends IQProvider<IQ> {
                    sessionID = parser.getAttributeValue("", "id");
                 }
                 else if (UserID.ELEMENT_NAME.equals(elemName)) {
-                    userID = ParserUtils.getJidAttribute(parser, "id");
+                    userID = parser.getAttributeValue("", "id");
                 }
                 else if ("user-request".equals(elemName)) {
                     content = UserRequest.getInstance();
                 }
                 else if (RoomInvitation.ELEMENT_NAME.equals(elemName)) {
                     RoomInvitation invitation = (RoomInvitation) PacketParserUtils
-                            .parseExtensionElement(RoomInvitation.ELEMENT_NAME, RoomInvitation.NAMESPACE, parser);
+                            .parsePacketExtension(RoomInvitation.ELEMENT_NAME, RoomInvitation.NAMESPACE, parser);
                     content = new InvitationRequest(invitation.getInviter(), invitation.getRoom(),
                             invitation.getReason());
                 }
                 else if (RoomTransfer.ELEMENT_NAME.equals(elemName)) {
                     RoomTransfer transfer = (RoomTransfer) PacketParserUtils
-                            .parseExtensionElement(RoomTransfer.ELEMENT_NAME, RoomTransfer.NAMESPACE, parser);
+                            .parsePacketExtension(RoomTransfer.ELEMENT_NAME, RoomTransfer.NAMESPACE, parser);
                     content = new TransferRequest(transfer.getInviter(), transfer.getRoom(), transfer.getReason());
                 }
             }
@@ -112,13 +113,13 @@ public class OfferRequestProvider extends IQProvider<IQ> {
     public static class OfferRequestPacket extends IQ {
 
         private int timeout;
-        private Jid userID;
-        private Jid userJID;
+        private String userID;
+        private String userJID;
         private Map<String, List<String>> metaData;
         private String sessionID;
         private OfferContent content;
 
-        public OfferRequestPacket(Jid userJID, Jid userID, int timeout, Map<String, List<String>> metaData,
+        public OfferRequestPacket(String userJID, String userID, int timeout, Map<String, List<String>> metaData,
                 String sessionID, OfferContent content)
         {
             super("offer", "http://jabber.org/protocol/workgroup");
@@ -136,7 +137,7 @@ public class OfferRequestProvider extends IQProvider<IQ> {
          *
          * @return the user ID.
          */
-        public Jid getUserID() {
+        public String getUserID() {
             return userID;
         }
 
@@ -145,7 +146,7 @@ public class OfferRequestProvider extends IQProvider<IQ> {
          *
          * @return the user JID.
          */
-        public Jid getUserJID() {
+        public String getUserJID() {
             return userJID;
         }
 

@@ -19,8 +19,8 @@ package org.jivesoftware.smackx.workgroup.packet;
 
 import org.jivesoftware.smackx.workgroup.agent.WorkgroupQueue;
 import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -29,7 +29,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class QueueOverview implements ExtensionElement {
+public class QueueOverview implements PacketExtension {
 
     /**
      * Element name of the packet extension.
@@ -117,7 +117,7 @@ public class QueueOverview implements ExtensionElement {
         return buf.toString();
     }
 
-    public static class Provider extends ExtensionElementProvider<QueueOverview> {
+    public static class Provider extends PacketExtensionProvider<QueueOverview> {
 
         @Override
         public QueueOverview parse(XmlPullParser parser,

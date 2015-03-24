@@ -29,7 +29,6 @@ import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream.StreamHost;
-import org.jxmpp.jid.Jid;
 
 /**
  * Implementation of a SOCKS5 client used on the initiators side. This is needed because connecting
@@ -48,8 +47,7 @@ class Socks5ClientForInitiator extends Socks5Client {
     private String sessionID;
 
     /* the target JID used to activate SOCKS5 stream */
-    // TODO fullJid?
-    private final Jid target;
+    private String target;
 
     /**
      * Creates a new SOCKS5 client for the initiators side.
@@ -61,7 +59,7 @@ class Socks5ClientForInitiator extends Socks5Client {
      * @param target the target JID of the SOCKS5 Bytestream
      */
     public Socks5ClientForInitiator(StreamHost streamHost, String digest, XMPPConnection connection,
-                    String sessionID, Jid target) {
+                    String sessionID, String target) {
         super(streamHost, digest);
         this.connection = connection;
         this.sessionID = sessionID;
@@ -101,15 +99,14 @@ class Socks5ClientForInitiator extends Socks5Client {
     }
 
     /**
-     * Activates the SOCKS5 Bytestream by sending an XMPP SOCKS5 Bytestream activation packet to the
+     * Activates the SOCKS5 Bytestream by sending a XMPP SOCKS5 Bytestream activation packet to the
      * SOCKS5 proxy.
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      * @throws SmackException if there was no response from the server.
      */
-    private void activate() throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    private void activate() throws NoResponseException, XMPPErrorException, NotConnectedException {
         Bytestream activate = createStreamHostActivation();
         // if activation fails #nextResultOrThrow() throws an exception
         connection.createPacketCollectorAndSend(activate).nextResultOrThrow();

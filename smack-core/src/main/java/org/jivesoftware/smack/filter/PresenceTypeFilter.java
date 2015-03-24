@@ -18,13 +18,12 @@ package org.jivesoftware.smack.filter;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
-import org.jivesoftware.smack.util.Objects;
 
 /**
  * A filter for Presence types. Returns true only if the stanza is an Presence packet and it matches the type provided in the
  * constructor.
  */
-public class PresenceTypeFilter extends FlexibleStanzaTypeFilter<Presence> {
+public class PresenceTypeFilter extends FlexiblePacketTypeFilter<Presence> {
 
     public static final PresenceTypeFilter AVAILABLE = new PresenceTypeFilter(Type.available);
     public static final PresenceTypeFilter UNAVAILABLE = new PresenceTypeFilter(Type.unavailable);
@@ -39,16 +38,11 @@ public class PresenceTypeFilter extends FlexibleStanzaTypeFilter<Presence> {
 
     private PresenceTypeFilter(Presence.Type type) {
         super(Presence.class);
-        this.type = Objects.requireNonNull(type, "type must not be null");
+        this.type = type;
     }
 
     @Override
     protected boolean acceptSpecific(Presence presence) {
         return presence.getType() == type;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + ": type=" + type;
     }
 }

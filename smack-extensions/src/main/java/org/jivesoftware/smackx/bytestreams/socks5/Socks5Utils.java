@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.util.SHA1;
-import org.jxmpp.jid.Jid;
 
 /**
  * A collection of utility methods for SOcKS5 messages.
@@ -39,7 +38,7 @@ class Socks5Utils {
      * @param targetJID JID of the target of a SOCKS5 Bytestream
      * @return SHA-1 digest of the given parameters
      */
-    public static String createDigest(String sessionID, Jid initiatorJID, Jid targetJID) {
+    public static String createDigest(String sessionID, String initiatorJID, String targetJID) {
         StringBuilder b = new StringBuilder();
         b.append(sessionID).append(initiatorJID).append(targetJID);
         return SHA1.hex(b.toString());

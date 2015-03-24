@@ -36,9 +36,8 @@ public abstract interface TransportResolverListener {
          *
          * @param cand The transport candidate.
          * @throws NotConnectedException 
-         * @throws InterruptedException 
          */
-        public void candidateAdded(TransportCandidate cand) throws NotConnectedException, InterruptedException;
+        public void candidateAdded(TransportCandidate cand) throws NotConnectedException;
 
         /**
          * All the transport candidates have been obtained.

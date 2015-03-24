@@ -21,17 +21,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jivesoftware.smack.AbstractConnectionClosedListener;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.StanzaListener;
+import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.packet.XMPPError;
@@ -50,7 +49,6 @@ import org.jivesoftware.smackx.jingleold.nat.TransportNegotiator;
 import org.jivesoftware.smackx.jingleold.nat.TransportResolver;
 import org.jivesoftware.smackx.jingleold.packet.Jingle;
 import org.jivesoftware.smackx.jingleold.packet.JingleError;
-import org.jxmpp.jid.Jid;
 
 /**
  * An abstract Jingle session. <p/> This class contains some basic properties of
@@ -71,17 +69,17 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
     // non-static
 
-    private Jid initiator; // Who started the communication
+    private String initiator; // Who started the communication
 
-    private Jid responder; // The other endpoint
+    private String responder; // The other endpoint
 
     private String sid; // A unique id that identifies this session
 
     ConnectionListener connectionListener;
+    
+    PacketListener packetListener;
 
-    StanzaListener packetListener;
-
-    StanzaFilter packetFilter;
+    PacketFilter packetFilter;
 
     protected List<JingleMediaManager> jingleMediaManagers = null;
 
@@ -92,7 +90,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
     private XMPPConnection connection;
 
     private String sessionInitPacketID;
-
+    
     private Map<String, JingleMediaSession> mediaSessionMap;
 
     /**
@@ -109,7 +107,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @param jingleMediaManagers
      *            the jingleMediaManager
      */
-    public JingleSession(XMPPConnection conn, Jid initiator, Jid responder, String sessionid,
+    public JingleSession(XMPPConnection conn, String initiator, String responder, String sessionid,
             List<JingleMediaManager> jingleMediaManagers) {
         super();
 
@@ -122,7 +120,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         // Initially, we don't known the session state.
         setSessionState(JingleSessionStateUnknown.getInstance());
-
+        
         contentNegotiators = new ArrayList<ContentNegotiator>();
         mediaSessionMap = new HashMap<String, JingleMediaSession>();
 
@@ -143,7 +141,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @param jingleMediaManagers
      *            the jingleMediaManager
      */
-    public JingleSession(XMPPConnection conn, JingleSessionRequest request, Jid initiator, Jid responder,
+    public JingleSession(XMPPConnection conn, JingleSessionRequest request, String initiator, String responder,
             List<JingleMediaManager> jingleMediaManagers) {
         this(conn, initiator, responder, generateSessionId(), jingleMediaManagers);
         //sessionRequest = request; // unused
@@ -154,7 +152,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * 
      * @return the initiator
      */
-    public Jid getInitiator() {
+    public String getInitiator() {
         return initiator;
     }
 
@@ -168,7 +166,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @param initiator
      *            the initiator to set
      */
-    public void setInitiator(Jid initiator) {
+    public void setInitiator(String initiator) {
         this.initiator = initiator;
     }
 
@@ -195,7 +193,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * 
      * @return the responder
      */
-    public Jid getResponder() {
+    public String getResponder() {
         return responder;
     }
 
@@ -205,7 +203,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @param responder
      *            the receptor to set
      */
-    public void setResponder(Jid responder) {
+    public void setResponder(String responder) {
         this.responder = responder;
     }
 
@@ -278,9 +276,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      *            the packet received
      * @throws XMPPException
      * @throws SmackException 
-     * @throws InterruptedException 
      */
-    public synchronized void receivePacketAndRespond(IQ iq) throws XMPPException, SmackException, InterruptedException {
+    public synchronized void receivePacketAndRespond(IQ iq) throws XMPPException, SmackException {
         List<IQ> responses = new ArrayList<IQ>();
 
         String responseId = null;
@@ -297,7 +294,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
                 // Send the IQ to each of the content negotiators for further processing.
                 // Each content negotiator may pass back a list of JingleContent for addition to the response packet.
-                // CHECKSTYLE:OFF
+
                 for (ContentNegotiator contentNegotiator : contentNegotiators) {
                 	// If at this point the content negotiator isn't started, it's because we sent a session-init jingle
                 	// packet from startOutgoing() and we're waiting for the other side to let us know they're ready
@@ -308,7 +305,6 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
                 	}
                     responses.addAll(contentNegotiator.dispatchIncomingPacket(iq, responseId));
                 }
-                // CHECKSTYLE:ON
 
             }
             // Acknowledge the IQ reception
@@ -329,12 +325,12 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         //        // If the response is anything other than a RESULT then send it now.
         //        if ((response != null) && (!response.getType().equals(IQ.Type.result))) {
-        //            getConnection().sendStanza(response);
+        //            getConnection().sendPacket(response);
         //        }
 
         // Loop through all of the responses and send them.
         for (IQ response : responses) {
-            sendStanza(response);
+            sendPacket(response);
         }
     }
 
@@ -348,9 +344,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @return the new Jingle packet to send.
      * @throws XMPPException
      * @throws SmackException 
-     * @throws InterruptedException 
      */
-    public List<IQ> dispatchIncomingPacket(IQ iq, String id) throws XMPPException, SmackException, InterruptedException {
+    public List<IQ> dispatchIncomingPacket(IQ iq, String id) throws XMPPException, SmackException {
         List<IQ> responses = new ArrayList<IQ>();
         IQ response = null;
 
@@ -396,13 +391,13 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
         contentNegotiators.add(inContentNegotiator);
     }
 
-
+  
 
      // ----------------------------------------------------------------------------------------------------------
     // Send section
     // ----------------------------------------------------------------------------------------------------------
 
-    public void sendStanza(IQ iq) throws NotConnectedException, InterruptedException {
+    public void sendPacket(IQ iq) throws NotConnectedException {
 
         if (iq instanceof Jingle) {
 
@@ -410,7 +405,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         } else {
 
-            getConnection().sendStanza(iq);
+            getConnection().sendPacket(iq);
         }
     }
 
@@ -421,9 +416,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @param jout
      *            the Jingle packet we want to complete and send
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public Jingle sendFormattedJingle(Jingle jout) throws NotConnectedException, InterruptedException {
+    public Jingle sendFormattedJingle(Jingle jout) throws NotConnectedException {
         return sendFormattedJingle(null, jout);
     }
 
@@ -437,9 +431,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * @param jout
      *            the Jingle packet we want to complete and send
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public Jingle sendFormattedJingle(IQ iq, Jingle jout) throws NotConnectedException, InterruptedException {
+    public Jingle sendFormattedJingle(IQ iq, Jingle jout) throws NotConnectedException {
         if (jout != null) {
             if (jout.getInitiator() == null) {
                 jout.setInitiator(getInitiator());
@@ -453,8 +446,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
                 jout.setSid(getSid());
             }
 
-            Jid me = getConnection().getUser();
-            Jid other = getResponder().equals(me) ? getInitiator() : getResponder();
+            String me = getConnection().getUser();
+            String other = getResponder().equals(me) ? getInitiator() : getResponder();
 
             if (jout.getTo() == null) {
                 if (iq != null) {
@@ -473,10 +466,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             }
 
             // The the packet.
-            // CHECKSTYLE:OFF
             if ((getConnection() != null) && (getConnection().isConnected()))
-            	getConnection().sendStanza(jout);
-            // CHECKSTYLE:ON
+            	getConnection().sendPacket(jout);
         }
         return jout;
     }
@@ -492,7 +483,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
     //            updatePacketListener();
     //
     //            // Send the actual packet.
-    //            sendStanza(inJingle);
+    //            sendPacket(inJingle);
     //
     //            // Change to the PENDING state.
     //            setSessionState(JingleSessionStateEnum.PENDING);
@@ -516,7 +507,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
                 IQ ack = IQ.createResultIQ(iq);
 
                 // No! Don't send it.  Let it flow to the normal way IQ results get processed and sent.
-                // getConnection().sendStanza(ack);
+                // getConnection().sendPacket(ack);
                 result = ack;
             }
         }
@@ -527,7 +518,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * Send a content info message.
      */
     //    public synchronized void sendContentInfo(ContentInfo ci) {
-    //        sendStanza(new Jingle(new JingleContentInfo(ci)));
+    //        sendPacket(new Jingle(new JingleContentInfo(ci)));
     //    }
     /*
      * (non-Javadoc)
@@ -646,15 +637,13 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             connection.addConnectionListener(connectionListener);
         }
     }
-
+    
     private void removeConnectionListener() {
-        // CHECKSTYLE:OFF
     	if (connectionListener != null) {
     		getConnection().removeConnectionListener(connectionListener);
-
+    		
     		LOGGER.fine("JINGLE SESSION: REMOVE CONNECTION LISTENER");
     	}
-        // CHECKSTYLE:ON
     }
 
     /**
@@ -662,7 +651,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      */
     protected void removeAsyncPacketListener() {
         if (packetListener != null) {
-            getConnection().removeAsyncStanzaListener(packetListener);
+            getConnection().removeAsyncPacketListener(packetListener);
 
             LOGGER.fine("JINGLE SESSION: REMOVE PACKET LISTENER");
         }
@@ -677,29 +666,29 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         LOGGER.fine("UpdatePacketListener");
 
-        packetListener = new StanzaListener() {
+        packetListener = new PacketListener() {
             public void processPacket(Stanza packet) {
                 try {
                     receivePacketAndRespond((IQ) packet);
                 } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, "exception", e);
+                    e.printStackTrace();
                 }
             }
         };
 
-        packetFilter = new StanzaFilter() {
+        packetFilter = new PacketFilter() {
             public boolean accept(Stanza packet) {
 
                 if (packet instanceof IQ) {
                     IQ iq = (IQ) packet;
 
-                    Jid me = getConnection().getUser();
+                    String me = getConnection().getUser();
 
                     if (!iq.getTo().equals(me)) {
                         return false;
                     }
 
-                    Jid other = getResponder().equals(me) ? getInitiator() : getResponder();
+                    String other = getResponder().equals(me) ? getInitiator() : getResponder();
 
                     if (iq.getFrom() == null || !iq.getFrom().equals(other == null ? "" : other)) {
                         return false;
@@ -713,7 +702,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
                             LOGGER.fine("Ignored Jingle(SID) " + sid + "|" + getSid() + " :" + iq.toXML());
                             return false;
                         }
-                        Jid ini = jin.getInitiator();
+                        String ini = jin.getInitiator();
                         if (!ini.equals(getInitiator())) {
                             LOGGER.fine("Ignored Jingle(INI): " + iq.toXML());
                             return false;
@@ -734,7 +723,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             }
         };
 
-        getConnection().addAsyncStanzaListener(packetListener, packetFilter);
+        getConnection().addAsyncPacketListener(packetListener, packetFilter);
     }
 
     // Listeners
@@ -806,7 +795,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             public void mediaClosed(PayloadType cand) {
             }
 
-            public void mediaEstablished(PayloadType pt) throws NotConnectedException, InterruptedException {
+            public void mediaEstablished(PayloadType pt) throws NotConnectedException {
                 if (isFullyEstablished()) {
                     Jingle jout = new Jingle(JingleActionEnum.SESSION_ACCEPT);
 
@@ -817,7 +806,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
                     }
                     // Send the "accept" and wait for the ACK
                     addExpectedId(jout.getStanzaId());
-                    sendStanza(jout);
+                    sendPacket(jout);
 
                     //triggerSessionEstablished();
 
@@ -827,20 +816,19 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         JingleTransportListener jingleTransportListener = new JingleTransportListener() {
 
-            public void transportEstablished(TransportCandidate local, TransportCandidate remote) throws NotConnectedException, InterruptedException {
+            public void transportEstablished(TransportCandidate local, TransportCandidate remote) throws NotConnectedException {
                 if (isFullyEstablished()) {
-                // CHECKSTYLE:OFF
+ 
                 	// Indicate that this session is active.
                 	setSessionState(JingleSessionStateActive.getInstance());
-
+                	
                 	for (ContentNegotiator contentNegotiator : contentNegotiators) {
-                // CHECKSTYLE:ON
                         if (contentNegotiator.getNegotiatorState() == JingleNegotiatorState.SUCCEEDED)
                             contentNegotiator.triggerContentEstablished();
                     }
 
                     if (getSessionState().equals(JingleSessionStatePending.getInstance())) {
-
+                    	
                         Jingle jout = new Jingle(JingleActionEnum.SESSION_ACCEPT);
 
                         // Build up a response packet from each media manager.
@@ -850,7 +838,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
                         }
                         // Send the "accept" and wait for the ACK
                         addExpectedId(jout.getStanzaId());
-                        sendStanza(jout);
+                        sendPacket(jout);
                     }
                 }
             }
@@ -969,9 +957,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * 
      * @throws XMPPException
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void terminate() throws XMPPException, NotConnectedException, InterruptedException {
+    public void terminate() throws XMPPException, NotConnectedException {
         terminate("Closed Locally");
     }
 
@@ -980,15 +967,14 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * 
      * @throws XMPPException
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void terminate(String reason) throws XMPPException, NotConnectedException, InterruptedException {
+    public void terminate(String reason) throws XMPPException, NotConnectedException {
         if (isClosed())
             return;
         LOGGER.fine("Terminate " + reason);
         Jingle jout = new Jingle(JingleActionEnum.SESSION_TERMINATE);
         jout.setType(IQ.Type.set);
-        sendStanza(jout);
+        sendPacket(jout);
         triggerSessionClosed(reason);
     }
 
@@ -1049,7 +1035,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             //            errorPacket.addExtension(jingleError);
 
             // NO! Let the normal state machinery do all of the sending.
-            // getConnection().sendStanza(perror);
+            // getConnection().sendPacket(perror);
             LOGGER.severe("Error sent: " + errorPacket.toXML());
         }
         return errorPacket;
@@ -1067,9 +1053,8 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
      * 
      * @throws IllegalStateException
      * @throws SmackException 
-     * @throws InterruptedException 
      */
-    public void startOutgoing() throws IllegalStateException, SmackException, InterruptedException {
+    public void startOutgoing() throws IllegalStateException, SmackException {
 
         updatePacketListener();
         setSessionState(JingleSessionStatePending.getInstance());
@@ -1088,7 +1073,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             try {
                 resolver = transportManager.getResolver(this);
             } catch (XMPPException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
 
             if (resolver.getType().equals(TransportResolver.Type.rawupd)) {
@@ -1109,14 +1094,14 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
         // Save the session-initiate packet ID, so that we can respond to it.
         sessionInitPacketID = jingle.getStanzaId();
 
-        sendStanza(jingle);
+        sendPacket(jingle);
 
         // Now setup to track the media negotiators, so that we know when (if) to send a session-accept.
         setupListeners();
 
         // Give each of the content negotiators a chance to start 
         // and return a portion of the structure to make the Jingle packet.
-
+        
 // Don't do this anymore.  The problem is that the other side might not be ready.
 // Later when we receive our first jingle packet from the other side we'll fire-up the negotiators
 // before processing it.  (See receivePacketAndRespond() above.
@@ -1132,9 +1117,9 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         //updatePacketListener();
     }
-
+    
     protected void doStart() {
-
+    	
     }
 
     /**
@@ -1149,7 +1134,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
             transNeg.start();
         }
     }
-
+    
     /**
      * The jingle session may have one or more media managers that are trying to establish media sessions.
      * When the media manager succeeds in creating a media session is registers it with the session by the
@@ -1158,7 +1143,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
     public void addJingleMediaSession(String mediaManagerName, JingleMediaSession mediaSession) {
         mediaSessionMap.put(mediaManagerName, mediaSession);
     }
-
+    
     /**
      * The jingle session may have one or more media managers that are trying to establish media sessions.
      * When the media manager succeeds in creating a media session is registers it with the session by the

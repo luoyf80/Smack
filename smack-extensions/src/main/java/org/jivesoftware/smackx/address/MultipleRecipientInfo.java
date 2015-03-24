@@ -18,7 +18,6 @@
 package org.jivesoftware.smackx.address;
 
 import org.jivesoftware.smackx.address.packet.MultipleAddresses;
-import org.jxmpp.jid.Jid;
 
 import java.util.List;
 
@@ -65,10 +64,9 @@ public class MultipleRecipientInfo {
      * @return the JID of a MUC room to which responses should be sent or <tt>null</tt>  if
      *         no specific address was provided.
      */
-    // TODO should return BareJid
-    public Jid getReplyRoom() {
+    public String getReplyRoom() {
         List<MultipleAddresses.Address> replyRoom = extension.getAddressesOfType(MultipleAddresses.Type.replyroom);
-        return replyRoom.isEmpty() ? null : replyRoom.get(0).getJid();
+        return replyRoom.isEmpty() ? null : ((MultipleAddresses.Address) replyRoom.get(0)).getJid();
     }
 
     /**
@@ -92,6 +90,6 @@ public class MultipleRecipientInfo {
      */
     public MultipleAddresses.Address getReplyAddress() {
         List<MultipleAddresses.Address> replyTo = extension.getAddressesOfType(MultipleAddresses.Type.replyto);
-        return replyTo.isEmpty() ? null : replyTo.get(0);
+        return replyTo.isEmpty() ? null : (MultipleAddresses.Address) replyTo.get(0);
     }
 }

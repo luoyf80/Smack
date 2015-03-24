@@ -24,9 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import org.jivesoftware.smack.util.TypedCloneable;
 import org.jivesoftware.smack.util.XmlStringBuilder;
-import org.jxmpp.jid.Jid;
 
 /**
  * Represents XMPP message packets. A message can be one of several types:
@@ -52,7 +50,7 @@ import org.jxmpp.jid.Jid;
  *
  * @author Matt Tucker
  */
-public final class Message extends Stanza implements TypedCloneable<Message> {
+public final class Message extends Stanza {
 
     public static final String ELEMENT = "message";
     public static final String BODY = "body";
@@ -74,7 +72,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
      *
      * @param to the recipient of the message.
      */
-    public Message(Jid to) {
+    public Message(String to) {
         setTo(to);
     }
 
@@ -84,7 +82,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
      * @param to the user to send the message to.
      * @param type the message type.
      */
-    public Message(Jid to, Type type) {
+    public Message(String to, Type type) {
         this(to);
         setType(type);
     }
@@ -95,26 +93,9 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
      * @param to the user to send the message to.
      * @param body the body of the message.
      */
-    public Message(Jid to, String body) {
+    public Message(String to, String body) {
         this(to);
         setBody(body);
-    }
-
-    /**
-     * Copy constructor.
-     * <p>
-     * This does not perform a deep clone, as extension elements are shared between the new and old
-     * instance.
-     * </p>
-     *
-     * @param other
-     */
-    public Message(Message other) {
-        super(other);
-        this.type = other.type;
-        this.thread = other.thread;
-        this.subjects.addAll(other.subjects);
-        this.bodies.addAll(other.bodies);
     }
 
     /**
@@ -152,7 +133,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
     public String getSubject() {
         return getSubject(null);
     }
-
+    
     /**
      * Returns the subject corresponding to the language. If the language is null, the method result
      * will be the same as {@link #getSubject()}. Null will be returned if the language does not have
@@ -165,7 +146,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
         Subject subject = getMessageSubject(language);
         return subject == null ? null : subject.subject;
     }
-
+    
     private Subject getMessageSubject(String language) {
         language = determineLanguage(language);
         for (Subject subject : subjects) {
@@ -284,7 +265,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
         Body body = getMessageBody(language);
         return body == null ? null : body.message;
     }
-
+    
     private Body getMessageBody(String language) {
         language = determineLanguage(language);
         for (Body body : bodies) {
@@ -400,7 +381,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
     }
 
     private String determineLanguage(String language) {
-
+        
         // empty string is passed by #setSubject() and #setBody() and is the same as null
         language = "".equals(language) ? null : language;
 
@@ -414,7 +395,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
         else {
             return language;
         }
-
+        
     }
 
     @Override
@@ -462,19 +443,6 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
         buf.append(getExtensionsXML());
         buf.closeElement(ELEMENT);
         return buf;
-    }
-
-    /**
-     * Creates and returns a copy of this message stanza.
-     * <p>
-     * This does not perform a deep clone, as extension elements are shared between the new and old
-     * instance.
-     * </p>
-     * @return a clone of this message.
-     */
-    @Override
-    public Message clone() {
-        return new Message(this);
     }
 
     /**
@@ -537,7 +505,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
             // simplified comparison because language and subject are always set
             return this.language.equals(other.language) && this.subject.equals(other.subject);
         }
-
+        
     }
 
     /**
@@ -599,7 +567,7 @@ public final class Message extends Stanza implements TypedCloneable<Message> {
             // simplified comparison because language and message are always set
             return this.language.equals(other.language) && this.message.equals(other.message);
         }
-
+        
     }
 
     /**

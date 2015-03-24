@@ -27,7 +27,6 @@ import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smackx.bytestreams.BytestreamListener;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream;
-import org.jivesoftware.smackx.filetransfer.StreamNegotiator;
 
 /**
  * InitiationListener handles all incoming SOCKS5 Bytestream initiation requests. If there are no
@@ -66,7 +65,7 @@ final class InitiationListener extends AbstractIqRequestHandler {
                 try {
                     processRequest(packet);
                 }
-                catch (InterruptedException | NotConnectedException e) {
+                catch (NotConnectedException e) {
                     LOGGER.log(Level.WARNING, "process request", e);
                 }
             }
@@ -75,10 +74,8 @@ final class InitiationListener extends AbstractIqRequestHandler {
         return null;
     }
 
-    private void processRequest(Stanza packet) throws NotConnectedException, InterruptedException {
+    private void processRequest(Stanza packet) throws NotConnectedException {
         Bytestream byteStreamRequest = (Bytestream) packet;
-
-        StreamNegotiator.signal(byteStreamRequest.getFrom().toString() + '\t' + byteStreamRequest.getSessionID(), byteStreamRequest);
 
         // ignore request if in ignore list
         if (this.manager.getIgnoredBytestreamRequests().remove(byteStreamRequest.getSessionID())) {

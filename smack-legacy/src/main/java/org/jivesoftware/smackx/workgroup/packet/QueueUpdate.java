@@ -19,8 +19,8 @@ package org.jivesoftware.smackx.workgroup.packet;
 
 import java.io.IOException;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -29,7 +29,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * status notifications -- position updates, and estimated time
  * left in the queue updates.
  */
-public class QueueUpdate implements ExtensionElement {
+public class QueueUpdate implements PacketExtension {
 
     /**
      * Element name of the packet extension.
@@ -90,7 +90,7 @@ public class QueueUpdate implements ExtensionElement {
         return NAMESPACE;
     }
 
-    public static class Provider extends ExtensionElementProvider<QueueUpdate> {
+    public static class Provider extends PacketExtensionProvider<QueueUpdate> {
 
         @Override
         public QueueUpdate parse(XmlPullParser parser, int initialDepth)

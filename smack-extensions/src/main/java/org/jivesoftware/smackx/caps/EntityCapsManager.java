@@ -22,18 +22,18 @@ import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.ConnectionCreationListener;
 import org.jivesoftware.smack.Manager;
-import org.jivesoftware.smack.StanzaListener;
+import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnectionRegistry;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.filter.NotFilter;
-import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.filter.AndFilter;
-import org.jivesoftware.smack.filter.StanzaTypeFilter;
-import org.jivesoftware.smack.filter.StanzaExtensionFilter;
+import org.jivesoftware.smack.filter.PacketTypeFilter;
+import org.jivesoftware.smack.filter.PacketExtensionFilter;
 import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smack.util.stringencoder.Base64;
 import org.jivesoftware.smackx.caps.cache.EntityCapsPersistentCache;
@@ -45,8 +45,6 @@ import org.jivesoftware.smackx.disco.packet.DiscoverInfo.Feature;
 import org.jivesoftware.smackx.disco.packet.DiscoverInfo.Identity;
 import org.jivesoftware.smackx.xdata.FormField;
 import org.jivesoftware.smackx.xdata.packet.DataForm;
-import org.jxmpp.jid.DomainBareJid;
-import org.jxmpp.jid.Jid;
 import org.jxmpp.util.cache.LruCache;
 
 import java.util.Comparator;
@@ -92,11 +90,11 @@ public class EntityCapsManager extends Manager {
 
     private static Map<XMPPConnection, EntityCapsManager> instances = new WeakHashMap<>();
 
-    private static final StanzaFilter PRESENCES_WITH_CAPS = new AndFilter(new StanzaTypeFilter(Presence.class), new StanzaExtensionFilter(
+    private static final PacketFilter PRESENCES_WITH_CAPS = new AndFilter(new PacketTypeFilter(Presence.class), new PacketExtensionFilter(
                     ELEMENT, NAMESPACE));
-    private static final StanzaFilter PRESENCES_WITHOUT_CAPS = new AndFilter(new StanzaTypeFilter(Presence.class), new NotFilter(new StanzaExtensionFilter(
+    private static final PacketFilter PRESENCES_WITHOUT_CAPS = new AndFilter(new PacketTypeFilter(Presence.class), new NotFilter(new PacketExtensionFilter(
                     ELEMENT, NAMESPACE)));
-    private static final StanzaFilter PRESENCES = StanzaTypeFilter.PRESENCE;
+    private static final PacketFilter PRESENCES = PacketTypeFilter.PRESENCE;
 
     /**
      * Map of "node + '#' + hash" to DiscoverInfo data
@@ -109,7 +107,7 @@ public class EntityCapsManager extends Manager {
      * link-local connection the key is formed as user@host (no resource) In
      * case of a server or component the key is formed as domain
      */
-    private static final LruCache<Jid, NodeVerHash> JID_TO_NODEVER_CACHE = new LruCache<>(10000);
+    private static final LruCache<String, NodeVerHash> JID_TO_NODEVER_CACHE = new LruCache<String, NodeVerHash>(10000);
 
     static {
         XMPPConnectionRegistry.addConnectionCreationListener(new ConnectionCreationListener() {
@@ -168,7 +166,7 @@ public class EntityCapsManager extends Manager {
         }
     }
 
-    public static NodeVerHash getNodeVerHashByJid(Jid jid) {
+    public static NodeVerHash getNodeVerHashByJid(String jid) {
         return JID_TO_NODEVER_CACHE.get(jid);
     }
 
@@ -181,7 +179,7 @@ public class EntityCapsManager extends Manager {
      *            user name (Full JID)
      * @return the discovered info
      */
-    public static DiscoverInfo getDiscoverInfoByUser(Jid user) {
+    public static DiscoverInfo getDiscoverInfoByUser(String user) {
         NodeVerHash nvh = JID_TO_NODEVER_CACHE.get(user);
         if (nvh == null)
             return null;
@@ -201,7 +199,7 @@ public class EntityCapsManager extends Manager {
         DiscoverInfo info = CAPS_CACHE.get(nodeVer);
 
         // If it was not in CAPS_CACHE, try to retrieve the information from persistentCache
-        if (info == null && persistentCache != null) {
+        if (info == null) {
             info = persistentCache.lookup(nodeVer);
             // Promote the information to CAPS_CACHE if one was found
             if (info != null) {
@@ -244,7 +242,7 @@ public class EntityCapsManager extends Manager {
         CAPS_CACHE.clear();
     }
 
-    private static void addCapsExtensionInfo(Jid from, CapsExtension capsExtension) {
+    private static void addCapsExtensionInfo(String from, CapsExtension capsExtension) {
         String capsExtensionHash = capsExtension.getHash();
         String hashInUppercase = capsExtensionHash.toUpperCase(Locale.US);
         // SUPPORTED_HASHES uses the format of MessageDigest, which is uppercase, e.g. "SHA-1" instead of "sha-1"
@@ -302,7 +300,7 @@ public class EntityCapsManager extends Manager {
                 if (capsExtension == null) {
                     return;
                 }
-                DomainBareJid from = connection.getServiceName();
+                String from = connection.getServiceName();
                 addCapsExtensionInfo(from, capsExtension);
             }
         });
@@ -313,7 +311,7 @@ public class EntityCapsManager extends Manager {
         if (autoEnableEntityCaps)
             enableEntityCaps();
 
-        connection.addAsyncStanzaListener(new StanzaListener() {
+        connection.addAsyncPacketListener(new PacketListener() {
             // Listen for remote presence stanzas with the caps extension
             // If we receive such a stanza, record the JID and nodeVer
             @Override
@@ -322,23 +320,23 @@ public class EntityCapsManager extends Manager {
                     return;
 
                 CapsExtension capsExtension = CapsExtension.from(packet);
-                Jid from = packet.getFrom();
+                String from = packet.getFrom();
                 addCapsExtensionInfo(from, capsExtension);
             }
 
         }, PRESENCES_WITH_CAPS);
 
-        connection.addAsyncStanzaListener(new StanzaListener() {
+        connection.addAsyncPacketListener(new PacketListener() {
             @Override
             public void processPacket(Stanza packet) {
                 // always remove the JID from the map, even if entityCaps are
                 // disabled
-                Jid from = packet.getFrom();
+                String from = packet.getFrom();
                 JID_TO_NODEVER_CACHE.remove(from);
             }
         }, PRESENCES_WITHOUT_CAPS);
 
-        connection.addPacketSendingListener(new StanzaListener() {
+        connection.addPacketSendingListener(new PacketListener() {
             @Override
             public void processPacket(Stanza packet) {
                 presenceSend = true;
@@ -348,7 +346,7 @@ public class EntityCapsManager extends Manager {
         // Intercept presence packages and add caps data when intended.
         // XEP-0115 specifies that a client SHOULD include entity capabilities
         // with every presence notification it sends.
-        StanzaListener packetInterceptor = new StanzaListener() {
+        PacketListener packetInterceptor = new PacketListener() {
             public void processPacket(Stanza packet) {
                 if (!entityCapsEnabled)
                     return;
@@ -392,7 +390,7 @@ public class EntityCapsManager extends Manager {
         return entityCapsEnabled;
     }
 
-    public void setEntityNode(String entityNode) {
+    public void setEntityNode(String entityNode) throws NotConnectedException {
         this.entityNode = entityNode;
         updateLocalEntityCaps();
     }
@@ -403,7 +401,7 @@ public class EntityCapsManager extends Manager {
      * @param user
      *            the user (Full JID)
      */
-    public static void removeUserCapsNode(String user) {
+    public void removeUserCapsNode(String user) {
         JID_TO_NODEVER_CACHE.remove(user);
     }
 
@@ -436,9 +434,8 @@ public class EntityCapsManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public boolean areEntityCapsSupported(Jid jid) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public boolean areEntityCapsSupported(String jid) throws NoResponseException, XMPPErrorException, NotConnectedException {
         return sdm.supportsFeature(jid, NAMESPACE);
     }
 
@@ -449,9 +446,8 @@ public class EntityCapsManager extends Manager {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public boolean areEntityCapsSupportedByServer() throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException  {
+    public boolean areEntityCapsSupportedByServer() throws NoResponseException, XMPPErrorException, NotConnectedException  {
         return areEntityCapsSupported(connection().getServiceName());
     }
 
@@ -486,7 +482,7 @@ public class EntityCapsManager extends Manager {
         final List<Identity> identities = new LinkedList<Identity>(ServiceDiscoveryManager.getInstanceFor(connection).getIdentities());
         sdm.setNodeInformationProvider(entityNode + '#' + currentCapsVersion, new AbstractNodeInformationProvider() {
             List<String> features = sdm.getFeatures();
-            List<ExtensionElement> packetExtensions = sdm.getExtendedInfoAsList();
+            List<PacketExtension> packetExtensions = sdm.getExtendedInfoAsList();
             @Override
             public List<String> getNodeFeatures() {
                 return features;
@@ -496,7 +492,7 @@ public class EntityCapsManager extends Manager {
                 return identities;
             }
             @Override
-            public List<ExtensionElement> getNodePacketExtensions() {
+            public List<PacketExtension> getNodePacketExtensions() {
                 return packetExtensions;
             }
         });
@@ -509,9 +505,9 @@ public class EntityCapsManager extends Manager {
         if (connection != null && connection.isAuthenticated() && presenceSend) {
             Presence presence = new Presence(Presence.Type.available);
             try {
-                connection.sendStanza(presence);
+                connection.sendPacket(presence);
             }
-            catch (InterruptedException | NotConnectedException e) {
+            catch (NotConnectedException e) {
                 LOGGER.log(Level.WARNING, "Could could not update presence with caps info", e);
             }
         }
@@ -557,7 +553,7 @@ public class EntityCapsManager extends Manager {
      */
     protected static boolean verifyPacketExtensions(DiscoverInfo info) {
         List<FormField> foundFormTypes = new LinkedList<FormField>();
-        for (ExtensionElement pe : info.getExtensions()) {
+        for (PacketExtension pe : info.getExtensions()) {
             if (pe.getNamespace().equals(DataForm.NAMESPACE)) {
                 DataForm df = (DataForm) pe;
                 for (FormField f : df.getFields()) {

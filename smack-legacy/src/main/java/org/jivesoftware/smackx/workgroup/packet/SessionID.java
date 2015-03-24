@@ -19,12 +19,12 @@ package org.jivesoftware.smackx.workgroup.packet;
 
 import java.io.IOException;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-public class SessionID implements ExtensionElement {
+public class SessionID implements PacketExtension {
 
     /**
      * Element name of the packet extension.
@@ -64,7 +64,7 @@ public class SessionID implements ExtensionElement {
         return buf.toString();
     }
 
-    public static class Provider extends ExtensionElementProvider<SessionID> {
+    public static class Provider extends PacketExtensionProvider<SessionID> {
 
         @Override
         public SessionID parse(XmlPullParser parser, int initialDepth)

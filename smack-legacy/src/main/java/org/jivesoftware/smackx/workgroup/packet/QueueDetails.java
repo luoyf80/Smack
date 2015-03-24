@@ -19,8 +19,8 @@ package org.jivesoftware.smackx.workgroup.packet;
 
 import org.jivesoftware.smackx.workgroup.QueueUser;
 import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -37,9 +37,9 @@ import java.util.logging.Logger;
  * Queue details packet extension, which contains details about the users
  * currently in a queue.
  */
-public class QueueDetails implements ExtensionElement {
+public class QueueDetails implements PacketExtension {
     private static final Logger LOGGER = Logger.getLogger(QueueDetails.class.getName());
-
+    
     /**
      * Element name of the packet extension.
      */
@@ -112,7 +112,7 @@ public class QueueDetails implements ExtensionElement {
 
         synchronized (users) {
             for (Iterator<QueueUser> i=users.iterator(); i.hasNext(); ) {
-                QueueUser user = i.next();
+                QueueUser user = (QueueUser)i.next();
                 int position = user.getQueuePosition();
                 int timeRemaining = user.getEstimatedRemainingTime();
                 Date timestamp = user.getQueueJoinTimestamp();
@@ -143,13 +143,13 @@ public class QueueDetails implements ExtensionElement {
     /**
      * Provider class for QueueDetails packet extensions.
      */
-    public static class Provider extends ExtensionElementProvider<QueueDetails> {
+    public static class Provider extends PacketExtensionProvider<QueueDetails> {
 
         @Override
         public QueueDetails parse(XmlPullParser parser,
                         int initialDepth) throws XmlPullParserException,
                         IOException, SmackException {
-
+            
             SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
             QueueDetails queueDetails = new QueueDetails();
 
@@ -165,7 +165,7 @@ public class QueueDetails implements ExtensionElement {
                     Date joinTime = null;
 
                     uid = parser.getAttributeValue("", "jid");
-
+               
                     if (uid == null) {
                         // throw exception
                     }
@@ -173,7 +173,7 @@ public class QueueDetails implements ExtensionElement {
                     eventType = parser.next();
                     while ((eventType != XmlPullParser.END_TAG)
                                 || (! "user".equals(parser.getName())))
-                    {
+                    {                        
                         if ("position".equals(parser.getName())) {
                             position = Integer.parseInt(parser.nextText());
                         }

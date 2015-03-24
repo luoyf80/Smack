@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 
 /**
  * Represents the <b>configuration</b> element of a pubsub message event which 
@@ -32,28 +32,28 @@ import org.jivesoftware.smack.packet.ExtensionElement;
 public class ConfigurationEvent extends NodeExtension implements EmbeddedPacketExtension
 {
 	private ConfigureForm form;
-
+	
 	public ConfigurationEvent(String nodeId)
 	{
 		super(PubSubElementType.CONFIGURATION, nodeId);
 	}
-
+	
 	public ConfigurationEvent(String nodeId, ConfigureForm configForm)
 	{
 		super(PubSubElementType.CONFIGURATION, nodeId);
 		form = configForm;
 	}
-
+	
 	public ConfigureForm getConfiguration()
 	{
 		return form;
 	}
 
-	public List<ExtensionElement> getExtensions()
+	public List<PacketExtension> getExtensions()
 	{
 		if (getConfiguration() == null)
 			return Collections.emptyList();
 		else
-			return Arrays.asList(((ExtensionElement)getConfiguration().getDataFormToSend()));
+			return Arrays.asList(((PacketExtension)getConfiguration().getDataFormToSend()));
 	}
 }

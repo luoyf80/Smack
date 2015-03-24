@@ -26,13 +26,17 @@ import org.jivesoftware.smack.SmackException.NoResponseException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
+import org.jivesoftware.smack.filter.AndFilter;
+import org.jivesoftware.smack.filter.FromMatchesFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
+import org.jivesoftware.smack.filter.PacketTypeFilter;
+import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smackx.bytestreams.socks5.Socks5BytestreamManager;
 import org.jivesoftware.smackx.bytestreams.socks5.Socks5BytestreamRequest;
 import org.jivesoftware.smackx.bytestreams.socks5.Socks5BytestreamSession;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream;
 import org.jivesoftware.smackx.si.packet.StreamInitiation;
-import org.jxmpp.jid.Jid;
 
 /**
  * Negotiates a SOCKS5 Bytestream to be used for file transfers. The implementation is based on the
@@ -53,7 +57,7 @@ public class Socks5TransferNegotiator extends StreamNegotiator {
     }
 
     @Override
-    public OutputStream createOutgoingStream(String streamID, Jid initiator, Jid target) throws NoResponseException, SmackException, XMPPException
+    public OutputStream createOutgoingStream(String streamID, String initiator, String target) throws NoResponseException, SmackException, XMPPException
                     {
         try {
             return this.manager.establishSession(target, streamID).getOutputStream();
@@ -80,13 +84,15 @@ public class Socks5TransferNegotiator extends StreamNegotiator {
     }
 
     @Override
-    public void newStreamInitiation(final Jid from, String streamID) {
+    public PacketFilter getInitiationPacketFilter(final String from, String streamID) {
         /*
          * this method is always called prior to #negotiateIncomingStream() so the SOCKS5
          * InitiationListener must ignore the next SOCKS5 Bytestream request with the given session
          * ID
          */
         this.manager.ignoreBytestreamRequestOnce(streamID);
+
+        return new AndFilter(FromMatchesFilter.create(from), new BytestreamSIDFilter(streamID));
     }
 
     @Override
@@ -114,6 +120,35 @@ public class Socks5TransferNegotiator extends StreamNegotiator {
         catch (IOException e) {
             throw new SmackException("Error establishing input stream", e);
         }
+    }
+
+    /**
+     * This PacketFilter accepts an incoming SOCKS5 Bytestream request with a specified session ID.
+     */
+    private static class BytestreamSIDFilter extends PacketTypeFilter {
+
+        private String sessionID;
+
+        public BytestreamSIDFilter(String sessionID) {
+            super(Bytestream.class);
+            if (sessionID == null) {
+                throw new IllegalArgumentException("StreamID cannot be null");
+            }
+            this.sessionID = sessionID;
+        }
+
+        @Override
+        public boolean accept(Stanza packet) {
+            if (super.accept(packet)) {
+                Bytestream bytestream = (Bytestream) packet;
+
+                // packet must by of type SET and contains the given session ID
+                return this.sessionID.equals(bytestream.getSessionID())
+                                && IQ.Type.set.equals(bytestream.getType());
+            }
+            return false;
+        }
+
     }
 
     /**

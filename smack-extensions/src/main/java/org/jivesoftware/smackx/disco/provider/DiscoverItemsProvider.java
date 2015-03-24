@@ -20,9 +20,7 @@ package org.jivesoftware.smackx.disco.provider;
 import java.io.IOException;
 
 import org.jivesoftware.smack.provider.IQProvider;
-import org.jivesoftware.smack.util.ParserUtils;
 import org.jivesoftware.smackx.disco.packet.DiscoverItems;
-import org.jxmpp.jid.Jid;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -39,7 +37,7 @@ public class DiscoverItemsProvider extends IQProvider<DiscoverItems> {
         DiscoverItems discoverItems = new DiscoverItems();
         boolean done = false;
         DiscoverItems.Item item;
-        Jid jid = null;
+        String jid = "";
         String name = "";
         String action = "";
         String node = "";
@@ -49,7 +47,7 @@ public class DiscoverItemsProvider extends IQProvider<DiscoverItems> {
 
             if (eventType == XmlPullParser.START_TAG && "item".equals(parser.getName())) {
                 // Initialize the variables from the parsed XML
-                jid = ParserUtils.getJidAttribute(parser);
+                jid = parser.getAttributeValue("", "jid");
                 name = parser.getAttributeValue("", "name");
                 node = parser.getAttributeValue("", "node");
                 action = parser.getAttributeValue("", "action");

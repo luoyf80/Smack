@@ -54,7 +54,7 @@ class CloseListener extends AbstractIqRequestHandler {
             try {
                 this.manager.replyItemNotFoundPacket(closeRequest);
             }
-            catch (InterruptedException | NotConnectedException e) {
+            catch (NotConnectedException e) {
                 return null;
             }
         }
@@ -62,7 +62,7 @@ class CloseListener extends AbstractIqRequestHandler {
             try {
                 ibbSession.closeByPeer(closeRequest);
             }
-            catch (InterruptedException | NotConnectedException e) {
+            catch (NotConnectedException e) {
                 return null;
             }
             this.manager.getSessions().remove(closeRequest.getSessionID());

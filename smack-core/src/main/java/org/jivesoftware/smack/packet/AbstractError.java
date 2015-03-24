@@ -28,18 +28,18 @@ public class AbstractError {
 
     private final String textNamespace;
     protected final Map<String, String> descriptiveTexts;
-    private final List<ExtensionElement> extensions;
+    private final List<PacketExtension> extensions;
 
 
     protected AbstractError(Map<String, String> descriptiveTexts) {
         this(descriptiveTexts, null);
     }
 
-    protected AbstractError(Map<String, String> descriptiveTexts, List<ExtensionElement> extensions) {
+    protected AbstractError(Map<String, String> descriptiveTexts, List<PacketExtension> extensions) {
         this(descriptiveTexts, null, extensions);
     }
 
-    protected AbstractError(Map<String, String> descriptiveTexts, String textNamespace, List<ExtensionElement> extensions) {
+    protected AbstractError(Map<String, String> descriptiveTexts, String textNamespace, List<PacketExtension> extensions) {
         if (descriptiveTexts != null) {
             this.descriptiveTexts = descriptiveTexts;
         } else {
@@ -91,7 +91,7 @@ public class AbstractError {
      * @param namespace the XML element namespace of the packet extension.
      * @return the extension, or <tt>null</tt> if it doesn't exist.
      */
-    public <PE extends ExtensionElement> PE getExtension(String elementName, String namespace) {
+    public <PE extends PacketExtension> PE getExtension(String elementName, String namespace) {
         return PacketUtil.extensionElementFrom(extensions, elementName, namespace);
     }
 
@@ -104,7 +104,7 @@ public class AbstractError {
             xml.escape(text);
             xml.closeElement("text");
         }
-        for (ExtensionElement packetExtension : extensions) {
+        for (PacketExtension packetExtension : extensions) {
             xml.append(packetExtension.toXML());
         }
     }

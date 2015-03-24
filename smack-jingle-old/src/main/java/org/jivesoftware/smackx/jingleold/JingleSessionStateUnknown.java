@@ -16,9 +16,6 @@
  */
 package org.jivesoftware.smackx.jingleold;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.IQ;
@@ -39,8 +36,6 @@ import org.jivesoftware.smackx.jingleold.packet.JingleTransport;
  *  @see JingleSessionState
  */
 public class JingleSessionStateUnknown extends JingleSessionState {
-    private static final Logger LOGGER = Logger.getLogger(JingleSessionStateUnknown.class.getName());
-
     private static JingleSessionStateUnknown INSTANCE = null;
 
     protected JingleSessionStateUnknown() {
@@ -68,7 +63,7 @@ public class JingleSessionStateUnknown extends JingleSessionState {
 
     }
 
-    public IQ processJingle(JingleSession session, Jingle jingle, JingleActionEnum action) throws SmackException, InterruptedException {
+    public IQ processJingle(JingleSession session, Jingle jingle, JingleActionEnum action) throws SmackException {
         IQ response = null;
 
         switch (action) {
@@ -93,10 +88,9 @@ public class JingleSessionStateUnknown extends JingleSessionState {
      * In the UNKNOWN state we received a <session-initiate> action.
      * This method processes that action.
      * @throws SmackException 
-     * @throws InterruptedException 
      */
 
-    private IQ receiveSessionInitiateAction(JingleSession session, Jingle inJingle) throws SmackException, InterruptedException {
+    private IQ receiveSessionInitiateAction(JingleSession session, Jingle inJingle) throws SmackException {
 
         IQ response = null;
         boolean shouldAck = true;
@@ -176,7 +170,7 @@ public class JingleSessionStateUnknown extends JingleSessionState {
                         try {
                             resolver = transportManager.getResolver(session);
                         } catch (XMPPException e) {
-                            LOGGER.log(Level.WARNING, "exception", e);
+                            e.printStackTrace();
                         }
 
                         if (resolver.getType().equals(TransportResolver.Type.rawupd)) {
@@ -210,7 +204,7 @@ public class JingleSessionStateUnknown extends JingleSessionState {
         try {
             session.terminate("Closed remotely");
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
 
         return response;

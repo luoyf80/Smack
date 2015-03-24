@@ -26,8 +26,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jivesoftware.smack.SmackException;
 
@@ -38,7 +36,6 @@ import org.jivesoftware.smack.SmackException;
  * @author Henning Staib
  */
 public class Socks5TestProxy {
-    private static final Logger LOGGER = Logger.getLogger(Socks5TestProxy.class.getName());
 
     /* SOCKS5 proxy singleton */
     private static Socks5TestProxy socks5Server;
@@ -105,7 +102,7 @@ public class Socks5TestProxy {
             this.serverThread.start();
         }
         catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "exception", e);
+            e.printStackTrace();
             // do nothing
         }
     }
@@ -123,7 +120,7 @@ public class Socks5TestProxy {
         }
         catch (IOException e) {
             // do nothing
-            LOGGER.log(Level.SEVERE, "exception", e);
+            e.printStackTrace();
         }
 
         if (this.serverThread != null && this.serverThread.isAlive()) {
@@ -133,7 +130,7 @@ public class Socks5TestProxy {
             }
             catch (InterruptedException e) {
                 // do nothing
-                LOGGER.log(Level.SEVERE, "exception", e);
+                e.printStackTrace();
             }
         }
         this.serverThread = null;
@@ -179,7 +176,7 @@ public class Socks5TestProxy {
                 try {
                     wait(5000);
                 } catch (InterruptedException e) {
-                    LOGGER.log(Level.SEVERE, "exception", e);
+                    e.printStackTrace();
                 } finally {
                     if (!startupComplete) {
                         throw new IllegalStateException("Startup of Socks5TestProxy failed within 5 seconds");
@@ -233,7 +230,7 @@ public class Socks5TestProxy {
                 }
                 catch (Exception e) {
                     try {
-                        LOGGER.log(Level.SEVERE, "exception", e);
+                        e.printStackTrace();
                         socket.close();
                     }
                     catch (IOException e1) {

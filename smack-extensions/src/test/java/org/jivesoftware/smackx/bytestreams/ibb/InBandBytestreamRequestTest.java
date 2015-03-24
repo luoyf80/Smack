@@ -28,8 +28,6 @@ import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.bytestreams.ibb.packet.Open;
 import org.junit.Before;
 import org.junit.Test;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.JidTestUtil;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -39,8 +37,8 @@ import org.mockito.ArgumentCaptor;
  */
 public class InBandBytestreamRequestTest {
 
-    static final Jid initiatorJID = JidTestUtil.DUMMY_AT_EXAMPLE_ORG_SLASH_DUMMYRESOURCE;
-    static final Jid targetJID = JidTestUtil.FULL_JID_1_RESOURCE_1;
+    String initiatorJID = "initiator@xmpp-server/Smack";
+    String targetJID = "target@xmpp-server/Smack";
     String sessionID = "session_id";
 
     XMPPConnection connection;
@@ -69,10 +67,9 @@ public class InBandBytestreamRequestTest {
     /**
      * Test reject() method.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
     @Test
-    public void shouldReplyWithErrorIfRequestIsRejected() throws NotConnectedException, InterruptedException {
+    public void shouldReplyWithErrorIfRequestIsRejected() throws NotConnectedException {
         InBandBytestreamRequest ibbRequest = new InBandBytestreamRequest(
                         byteStreamManager, initBytestream);
 
@@ -81,7 +78,7 @@ public class InBandBytestreamRequestTest {
 
         // capture reply to the In-Band Bytestream open request
         ArgumentCaptor<IQ> argument = ArgumentCaptor.forClass(IQ.class);
-        verify(connection).sendStanza(argument.capture());
+        verify(connection).sendPacket(argument.capture());
 
         // assert that reply is the correct error packet
         assertEquals(initiatorJID, argument.getValue().getTo());
@@ -106,7 +103,7 @@ public class InBandBytestreamRequestTest {
 
         // capture reply to the In-Band Bytestream open request
         ArgumentCaptor<IQ> argument = ArgumentCaptor.forClass(IQ.class);
-        verify(connection).sendStanza(argument.capture());
+        verify(connection).sendPacket(argument.capture());
 
         // assert that reply is the correct acknowledgment packet
         assertEquals(initiatorJID, argument.getValue().getTo());

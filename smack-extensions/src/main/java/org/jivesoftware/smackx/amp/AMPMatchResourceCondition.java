@@ -33,9 +33,8 @@ public class AMPMatchResourceCondition implements AMPExtension.Condition {
      * @throws XMPPErrorException 
      * @throws NoResponseException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public static boolean isSupported(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException, InterruptedException {
+    public static boolean isSupported(XMPPConnection connection) throws NoResponseException, XMPPErrorException, NotConnectedException {
         return AMPManager.isConditionSupported(connection, NAME);
     }
 

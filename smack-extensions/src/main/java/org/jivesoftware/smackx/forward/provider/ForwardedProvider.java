@@ -16,30 +16,32 @@
  */
 package org.jivesoftware.smackx.forward.provider;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Stanza;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.jivesoftware.smackx.delay.provider.DelayInformationProvider;
 import org.jivesoftware.smackx.forward.packet.Forwarded;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
- * This class implements the {@link ExtensionElementProvider} to parse
+ * This class implements the {@link PacketExtensionProvider} to parse
  * forwarded messages from a packet.  It will return a {@link Forwarded} packet extension.
  *
  * @author Georg Lukas
  */
-public class ForwardedProvider extends ExtensionElementProvider<Forwarded> {
+public class ForwardedProvider extends PacketExtensionProvider<Forwarded> {
 
     private static final Logger LOGGER = Logger.getLogger(ForwardedProvider.class.getName());
 
     @Override
-    public Forwarded parse(XmlPullParser parser, int initialDepth) throws Exception {
+    public Forwarded parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException, SmackException {
         DelayInformation di = null;
         Stanza packet = null;
 
@@ -64,7 +66,6 @@ public class ForwardedProvider extends ExtensionElementProvider<Forwarded> {
                 default:
                     LOGGER.warning("Unsupported forwarded packet type: " + name);
                 }
-                break;
             case XmlPullParser.END_TAG:
                 if (parser.getDepth() == initialDepth) {
                     break outerloop;

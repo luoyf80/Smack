@@ -17,7 +17,8 @@
 
 package org.jivesoftware.smackx.xdata.provider;
 
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.roster.provider.RosterPacketProvider;
 import org.jivesoftware.smackx.xdata.FormField;
@@ -38,11 +39,11 @@ import java.util.List;
  * 
  * @author Gaston Dombiak
  */
-public class DataFormProvider extends ExtensionElementProvider<DataForm> {
+public class DataFormProvider extends PacketExtensionProvider<DataForm> {
 
     @Override
-    public DataForm parse(XmlPullParser parser, int initialDepth) throws
-                    Exception {
+    public DataForm parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException,
+                    SmackException {
         DataForm.Type dataFormType = DataForm.Type.fromString(parser.getAttributeValue("", "type"));
         DataForm dataForm = new DataForm(dataFormType);
         outerloop: while (true) {
@@ -91,7 +92,7 @@ public class DataFormProvider extends ExtensionElementProvider<DataForm> {
         return dataForm;
     }
 
-    private static FormField parseField(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private FormField parseField(XmlPullParser parser) throws XmlPullParserException, IOException {
         final int initialDepth = parser.getDepth();
         final String var = parser.getAttributeValue("", "var");
         final FormField.Type type = FormField.Type.fromString(parser.getAttributeValue("", "type"));
@@ -131,7 +132,6 @@ public class DataFormProvider extends ExtensionElementProvider<DataForm> {
                     }
                     break;
                 }
-                break;
             case XmlPullParser.END_TAG:
                 if (parser.getDepth() == initialDepth) {
                     break outerloop;
@@ -142,7 +142,7 @@ public class DataFormProvider extends ExtensionElementProvider<DataForm> {
         return formField;
     }
 
-    private static DataForm.Item parseItem(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private DataForm.Item parseItem(XmlPullParser parser) throws XmlPullParserException, IOException {
         final int initialDepth = parser.getDepth();
         List<FormField> fields = new ArrayList<FormField>();
         outerloop: while (true) {
@@ -166,7 +166,7 @@ public class DataFormProvider extends ExtensionElementProvider<DataForm> {
         return new DataForm.Item(fields);
     }
 
-    private static DataForm.ReportedData parseReported(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private DataForm.ReportedData parseReported(XmlPullParser parser) throws XmlPullParserException, IOException {
         final int initialDepth = parser.getDepth();
         List<FormField> fields = new ArrayList<FormField>();
         outerloop: while (true) {
@@ -190,7 +190,7 @@ public class DataFormProvider extends ExtensionElementProvider<DataForm> {
         return new DataForm.ReportedData(fields);
     }
 
-    private static FormField.Option parseOption(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private FormField.Option parseOption(XmlPullParser parser) throws XmlPullParserException, IOException {
         final int initialDepth = parser.getDepth();
         FormField.Option option = null;
         String label = parser.getAttributeValue("", "label");

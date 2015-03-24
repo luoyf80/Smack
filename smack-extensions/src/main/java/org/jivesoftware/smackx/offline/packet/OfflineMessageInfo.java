@@ -19,8 +19,8 @@ package org.jivesoftware.smackx.offline.packet;
 
 import java.io.IOException;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -32,7 +32,7 @@ import org.xmlpull.v1.XmlPullParserException;
  *
  * @author Gaston Dombiak
  */
-public class OfflineMessageInfo implements ExtensionElement {
+public class OfflineMessageInfo implements PacketExtension {
 
     private String node = null;
 
@@ -88,7 +88,7 @@ public class OfflineMessageInfo implements ExtensionElement {
         return buf.toString();
     }
 
-    public static class Provider extends ExtensionElementProvider<OfflineMessageInfo> {
+    public static class Provider extends PacketExtensionProvider<OfflineMessageInfo> {
 
         /**
          * Parses a OfflineMessageInfo packet (extension sub-packet).

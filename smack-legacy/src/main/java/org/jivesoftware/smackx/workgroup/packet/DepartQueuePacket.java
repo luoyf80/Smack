@@ -18,7 +18,6 @@
 package org.jivesoftware.smackx.workgroup.packet;
 
 import org.jivesoftware.smack.packet.IQ;
-import org.jxmpp.jid.Jid;
 
 /**
  * A IQ packet used to depart a workgroup queue. There are two cases for issuing a depart
@@ -33,7 +32,7 @@ import org.jxmpp.jid.Jid;
  */
 public class DepartQueuePacket extends IQ {
 
-    private Jid user;
+    private String user;
 
     private DepartQueuePacket() {
         super("depart-queue", "http://jabber.org/protocol/workgroup");
@@ -44,7 +43,7 @@ public class DepartQueuePacket extends IQ {
      *
      * @param workgroup the workgroup to depart.
      */
-    public DepartQueuePacket(Jid workgroup) {
+    public DepartQueuePacket(String workgroup) {
         this(workgroup, null);
     }
 
@@ -55,7 +54,7 @@ public class DepartQueuePacket extends IQ {
      * @param workgroup the workgroup to depart.
      * @param user the user to make depart from the queue.
      */
-    public DepartQueuePacket(Jid workgroup, Jid user) {
+    public DepartQueuePacket(String workgroup, String user) {
         this();
         this.user = user;
 

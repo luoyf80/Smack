@@ -24,7 +24,7 @@ import org.jivesoftware.smack.iqrequest.IQRequestHandler.Mode;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.si.packet.StreamInitiation;
-import org.jxmpp.jid.FullJid;
+import org.jxmpp.util.XmppStringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The file transfer manager class handles the sending and recieving of files.
- * To send a file invoke the {@link #createOutgoingFileTransfer(FullJid)} method.
+ * To send a file invoke the {@link #createOutgoingFileTransfer(String)} method.
  * <p>
  * And to recieve a file add a file transfer listener to the manager. The
  * listener will notify you when there is a new file transfer request. To create
@@ -117,16 +117,19 @@ public class FileTransferManager extends Manager {
 	 * @return The send file object on which the negotiated transfer can be run.
 	 * @exception IllegalArgumentException if userID is null or not a full JID
 	 */
-	public OutgoingFileTransfer createOutgoingFileTransfer(FullJid userID) {
-        // We need to create outgoing file transfers with a full JID since this method will later
-        // use XEP-0095 to negotiate the stream. This is done with IQ stanzas that need to be addressed to a full JID
-        // in order to reach an client entity.
+	public OutgoingFileTransfer createOutgoingFileTransfer(String userID) {
         if (userID == null) {
             throw new IllegalArgumentException("userID was null");
         }
+        // We need to create outgoing file transfers with a full JID since this method will later
+        // use XEP-0095 to negotiate the stream. This is done with IQ stanzas that need to be addressed to a full JID
+        // in order to reach an client entity.
+        else if (!XmppStringUtils.isFullJID(userID)) {
+            throw new IllegalArgumentException("The provided user id was not a full JID (i.e. with resource part)");
+        }
 
 		return new OutgoingFileTransfer(connection().getUser(), userID,
-				FileTransferNegotiator.getNextStreamID(),
+				fileTransferNegotiator.getNextStreamID(),
 				fileTransferNegotiator);
 	}
 
@@ -160,9 +163,8 @@ public class FileTransferManager extends Manager {
 	 * </p>
 	 * @param request
 	 * @throws NotConnectedException
-	 * @throws InterruptedException 
 	 */
-	protected void rejectIncomingFileTransfer(FileTransferRequest request) throws NotConnectedException, InterruptedException {
+	protected void rejectIncomingFileTransfer(FileTransferRequest request) throws NotConnectedException {
 		StreamInitiation initiation = request.getStreamInitiation();
 
         // Reject as specified in XEP-95 4.2. Note that this is not to be confused with the Socks 5
@@ -171,6 +173,6 @@ public class FileTransferManager extends Manager {
         // Socks5BytestreamManager.replyRejectPacket(IQ).
         IQ rejection = IQ.createErrorResponse(initiation, new XMPPError(
                         XMPPError.Condition.forbidden));
-        connection().sendStanza(rejection);
+        connection().sendPacket(rejection);
 	}
 }

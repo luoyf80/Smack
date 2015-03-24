@@ -17,7 +17,12 @@
 
 package org.jivesoftware.smack.filter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.util.Objects;
 
 /**
  * Implements the logical OR operation over two or more packet filters. In
@@ -25,14 +30,19 @@ import org.jivesoftware.smack.packet.Stanza;
  *
  * @author Matt Tucker
  */
-public class OrFilter extends AbstractListFilter implements StanzaFilter {
+public class OrFilter implements PacketFilter {
+
+    /**
+     * The list of filters.
+     */
+    private final List<PacketFilter> filters;
 
     /**
      * Creates an empty OR filter. Filters should be added using the
-     * {@link #addFilter(StanzaFilter)} method.
+     * {@link #addFilter(PacketFilter)} method.
      */
     public OrFilter() {
-        super();
+        filters = new ArrayList<PacketFilter>();
     }
 
     /**
@@ -40,13 +50,27 @@ public class OrFilter extends AbstractListFilter implements StanzaFilter {
      *
      * @param filters the filters to add.
      */
-    public OrFilter(StanzaFilter... filters) {
-        super(filters);
+    public OrFilter(PacketFilter... filters) {
+        Objects.requireNonNull(filters, "Parameter must not be null.");
+        for(PacketFilter filter : filters) {
+            Objects.requireNonNull(filter, "Parameter must not be null.");
+        }
+        this.filters = new ArrayList<PacketFilter>(Arrays.asList(filters));
     }
 
-    @Override
+    /**
+     * Adds a filter to the filter list for the OR operation. A packet
+     * will pass the filter if any filter in the list accepts it.
+     *
+     * @param filter a filter to add to the filter list.
+     */
+    public void addFilter(PacketFilter filter) {
+        Objects.requireNonNull(filter, "Parameter must not be null.");
+        filters.add(filter);
+    }
+
     public boolean accept(Stanza packet) {
-        for (StanzaFilter filter : filters) {
+        for (PacketFilter filter : filters) {
             if (filter.accept(packet)) {
                 return true;
             }
@@ -54,4 +78,7 @@ public class OrFilter extends AbstractListFilter implements StanzaFilter {
         return false;
     }
 
+    public String toString() {
+        return filters.toString();
+    }
 }

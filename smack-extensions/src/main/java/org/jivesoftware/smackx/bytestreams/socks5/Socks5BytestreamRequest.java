@@ -30,7 +30,6 @@ import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.bytestreams.BytestreamRequest;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream;
 import org.jivesoftware.smackx.bytestreams.socks5.packet.Bytestream.StreamHost;
-import org.jxmpp.jid.Jid;
 import org.jxmpp.util.cache.Cache;
 import org.jxmpp.util.cache.ExpirationCache;
 
@@ -170,7 +169,7 @@ public class Socks5BytestreamRequest implements BytestreamRequest {
      * 
      * @return the sender of the SOCKS5 Bytestream initialization request.
      */
-    public Jid getFrom() {
+    public String getFrom() {
         return this.bytestreamRequest.getFrom();
     }
 
@@ -258,7 +257,7 @@ public class Socks5BytestreamRequest implements BytestreamRequest {
 
         // send used-host confirmation
         Bytestream response = createUsedHostResponse(selectedHost);
-        this.manager.getConnection().sendStanza(response);
+        this.manager.getConnection().sendPacket(response);
 
         return new Socks5BytestreamSession(socket, selectedHost.getJID().equals(
                         this.bytestreamRequest.getFrom()));
@@ -268,9 +267,8 @@ public class Socks5BytestreamRequest implements BytestreamRequest {
     /**
      * Rejects the SOCKS5 Bytestream request by sending a reject error to the initiator.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void reject() throws NotConnectedException, InterruptedException {
+    public void reject() throws NotConnectedException {
         this.manager.replyRejectPacket(this.bytestreamRequest);
     }
 
@@ -279,13 +277,12 @@ public class Socks5BytestreamRequest implements BytestreamRequest {
      * XMPP exception.
      * @throws XMPPErrorException 
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    private void cancelRequest() throws XMPPErrorException, NotConnectedException, InterruptedException {
+    private void cancelRequest() throws XMPPErrorException, NotConnectedException {
         String errorMessage = "Could not establish socket with any provided host";
         XMPPError error = XMPPError.from(XMPPError.Condition.item_not_found, errorMessage);
         IQ errorIQ = IQ.createErrorResponse(this.bytestreamRequest, error);
-        this.manager.getConnection().sendStanza(errorIQ);
+        this.manager.getConnection().sendPacket(errorIQ);
         throw new XMPPErrorException(errorMessage, error);
     }
 
@@ -309,7 +306,7 @@ public class Socks5BytestreamRequest implements BytestreamRequest {
      * 
      * @param address the address the connection failure counter should be increased
      */
-    private static void incrementConnectionFailures(String address) {
+    private void incrementConnectionFailures(String address) {
         Integer count = ADDRESS_BLACKLIST.get(address);
         ADDRESS_BLACKLIST.put(address, count == null ? 1 : count + 1);
     }
@@ -320,7 +317,7 @@ public class Socks5BytestreamRequest implements BytestreamRequest {
      * @param address the address
      * @return number of connection failures
      */
-    private static int getConnectionFailures(String address) {
+    private int getConnectionFailures(String address) {
         Integer count = ADDRESS_BLACKLIST.get(address);
         return count != null ? count : 0;
     }

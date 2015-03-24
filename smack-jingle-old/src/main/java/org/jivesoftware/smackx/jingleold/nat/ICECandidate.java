@@ -19,7 +19,6 @@ package org.jivesoftware.smackx.jingleold.nat;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -259,7 +258,7 @@ public class ICECandidate extends TransportCandidate implements Comparable<ICECa
                                     echo.testASync(checkingCandidate, getPassword());
                                 }
                                 catch (UnknownHostException e) {
-                                    LOGGER.log(Level.WARNING, "exception", e);
+                                    e.printStackTrace();
                                 }
                             }
                         }
@@ -272,7 +271,7 @@ public class ICECandidate extends TransportCandidate implements Comparable<ICECa
                         Thread.sleep(400);
                     }
                     catch (InterruptedException e) {
-                        LOGGER.log(Level.WARNING, "exception", e);
+                        e.printStackTrace();
                     }
 
                 for (TransportCandidate candidate : localCandidates) {

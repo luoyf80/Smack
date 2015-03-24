@@ -23,9 +23,6 @@ import org.jivesoftware.smack.packet.id.StanzaIdUtil;
 import org.jivesoftware.smack.util.MultiMap;
 import org.jivesoftware.smack.util.PacketUtil;
 import org.jivesoftware.smack.util.XmlStringBuilder;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.impl.JidCreate;
-import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.util.Collection;
@@ -48,7 +45,8 @@ import java.util.Set;
  * @author Matt Tucker
  * @see <a href="http://xmpp.org/rfcs/rfc6120.html#stanzas">RFC 6120 § 8. XML Stanzas</a>
  */
-public abstract class Stanza implements TopLevelStreamElement {
+@SuppressWarnings("deprecation") // FIXME Remove when 'Packet' is removed from Smack
+public abstract class Stanza implements TopLevelStreamElement, Packet {
 
     public static final String TEXT = "text";
     public static final String ITEM = "item";
@@ -56,11 +54,11 @@ public abstract class Stanza implements TopLevelStreamElement {
     protected static final String DEFAULT_LANGUAGE =
             java.util.Locale.getDefault().getLanguage().toLowerCase(Locale.US);
 
-    private final MultiMap<String, ExtensionElement> packetExtensions = new MultiMap<>();
+    private final MultiMap<String, PacketExtension> packetExtensions = new MultiMap<>();
 
     private String id = null;
-    private Jid to;
-    private Jid from;
+    private String to = null;
+    private String from = null;
     private XMPPError error = null;
 
     /**
@@ -75,22 +73,22 @@ public abstract class Stanza implements TopLevelStreamElement {
      */
     protected String language;
 
-    protected Stanza() {
+    public Stanza() {
         this(StanzaIdUtil.newStanzaId());
     }
 
-    protected Stanza(String stanzaId) {
+    public Stanza(String stanzaId) {
         setStanzaId(stanzaId);
     }
 
-    protected Stanza(Stanza p) {
+    public Stanza(Stanza p) {
         id = p.getStanzaId();
         to = p.getTo();
         from = p.getFrom();
         error = p.error;
 
         // Copy extensions
-        for (ExtensionElement pe : p.getExtensions()) {
+        for (PacketExtension pe : p.getExtensions()) {
             addExtension(pe);
         }
     }
@@ -121,9 +119,6 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @param id the unique ID for the packet.
      */
     public void setStanzaId(String id) {
-        if (id != null) {
-            requireNotNullOrEmpty(id, "id must either be null or not the empty String");
-        }
         this.id = id;
     }
 
@@ -138,18 +133,6 @@ public abstract class Stanza implements TopLevelStreamElement {
     }
 
     /**
-     * Check if this stanza has an ID set.
-     *
-     * @return true if the stanza ID is set, false otherwise.
-     * @since 4.1
-     */
-    public boolean hasStanzaIdSet() {
-        // setStanzaId ensures that the id is either null or not empty,
-        // so we can assume that it is set if it's not null.
-        return id != null;
-    }
-
-    /**
      * Returns who the packet is being sent "to", or <tt>null</tt> if
      * the value is not set. The XMPP protocol often makes the "to"
      * attribute optional, so it does not always need to be set.<p>
@@ -157,7 +140,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @return who the packet is being sent to, or <tt>null</tt> if the
      *      value has not been set.
      */
-    public Jid getTo() {
+    public String getTo() {
         return to;
     }
 
@@ -166,28 +149,8 @@ public abstract class Stanza implements TopLevelStreamElement {
      * the "to" attribute optional, so it does not always need to be set.
      *
      * @param to who the packet is being sent to.
-     * @throws IllegalArgumentException if to is not a valid JID String.
-     * @deprecated use {@link #setTo(Jid)} instead.
      */
-    @Deprecated
     public void setTo(String to) {
-        Jid jid;
-        try {
-            jid = JidCreate.from(to);
-        }
-        catch (XmppStringprepException e) {
-            throw new IllegalArgumentException(e);
-        }
-        setTo(jid);
-    }
-
-    /**
-     * Sets who the packet is being sent "to". The XMPP protocol often makes
-     * the "to" attribute optional, so it does not always need to be set.
-     *
-     * @param to who the packet is being sent to.
-     */
-    public void setTo(Jid to) {
         this.to = to;
     }
 
@@ -199,7 +162,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @return who the packet is being sent from, or <tt>null</tt> if the
      *      value has not been set.
      */
-    public Jid getFrom() {
+    public String getFrom() {
         return from;
     }
 
@@ -209,29 +172,8 @@ public abstract class Stanza implements TopLevelStreamElement {
      * be set.
      *
      * @param from who the packet is being sent to.
-     * @throws IllegalArgumentException if from is not a valid JID String.
-     * @deprecated use {@link #setFrom(Jid)} instead.
      */
-    @Deprecated
     public void setFrom(String from) {
-        Jid jid;
-        try {
-            jid = JidCreate.from(from);
-        }
-        catch (XmppStringprepException e) {
-            throw new IllegalArgumentException(e);
-        }
-        setFrom(jid);
-    }
-
-    /**
-     * Sets who the packet is being sent "from". The XMPP protocol often
-     * makes the "from" attribute optional, so it does not always need to
-     * be set.
-     *
-     * @param from who the packet is being sent to.
-     */
-    public void setFrom(Jid from) {
         this.from = from;
     }
 
@@ -273,13 +215,12 @@ public abstract class Stanza implements TopLevelStreamElement {
     }
 
     /**
-     * Returns a list of all extension elements of this stanza.
+     * Returns a copy of the packet extensions attached to the packet.
      *
-     * @return a list of all extension elements of this stanza.
+     * @return the packet extensions.
      */
-    public List<ExtensionElement> getExtensions() {
+    public List<PacketExtension> getExtensions() {
         synchronized (packetExtensions) {
-            // No need to create a new list, values() will already create a new one for us
             return packetExtensions.values();
         }
     }
@@ -295,7 +236,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @return a set of all matching extensions.
      * @since 4.1
      */
-    public Set<ExtensionElement> getExtensions(String elementName, String namespace) {
+    public Set<PacketExtension> getExtensions(String elementName, String namespace) {
         requireNotNullOrEmpty(elementName, "elementName must not be null or empty");
         requireNotNullOrEmpty(namespace, "namespace must not be null or empty");
         String key = XmppStringUtils.generateKey(elementName, namespace);
@@ -311,32 +252,32 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @param namespace the namespace of the extension that is desired.
      * @return the packet extension with the given namespace.
      */
-    public ExtensionElement getExtension(String namespace) {
+    public PacketExtension getExtension(String namespace) {
         return PacketUtil.extensionElementFrom(getExtensions(), null, namespace);
     }
 
     /**
-     * Returns the first extension that matches the specified element name and
+     * Returns the first packet extension that matches the specified element name and
      * namespace, or <tt>null</tt> if it doesn't exist. If the provided elementName is null,
-     * only the namespace is matched. Extensions are
+     * only the namespace is matched. Packet extensions are
      * are arbitrary XML sub-documents in standard XMPP packets. By default, a 
-     * {@link DefaultExtensionElement} instance will be returned for each extension. However, 
-     * ExtensionElementProvider instances can be registered with the 
+     * DefaultPacketExtension instance will be returned for each extension. However, 
+     * PacketExtensionProvider instances can be registered with the 
      * {@link org.jivesoftware.smack.provider.ProviderManager ProviderManager}
      * class to handle custom parsing. In that case, the type of the Object
      * will be determined by the provider.
      *
-     * @param elementName the XML element name of the extension. (May be null)
-     * @param namespace the XML element namespace of the extension.
+     * @param elementName the XML element name of the packet extension. (May be null)
+     * @param namespace the XML element namespace of the packet extension.
      * @return the extension, or <tt>null</tt> if it doesn't exist.
      */
     @SuppressWarnings("unchecked")
-    public <PE extends ExtensionElement> PE getExtension(String elementName, String namespace) {
+    public <PE extends PacketExtension> PE getExtension(String elementName, String namespace) {
         if (namespace == null) {
             return null;
         }
         String key = XmppStringUtils.generateKey(elementName, namespace);
-        ExtensionElement packetExtension;
+        PacketExtension packetExtension;
         synchronized (packetExtensions) {
             packetExtension = packetExtensions.getFirst(key);
         }
@@ -351,7 +292,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      *
      * @param extension a packet extension.
      */
-    public void addExtension(ExtensionElement extension) {
+    public void addExtension(PacketExtension extension) {
         if (extension == null) return;
         String key = XmppStringUtils.generateKey(extension.getElementName(), extension.getNamespace());
         synchronized (packetExtensions) {
@@ -364,9 +305,9 @@ public abstract class Stanza implements TopLevelStreamElement {
      * 
      * @param extensions a collection of packet extensions
      */
-    public void addExtensions(Collection<ExtensionElement> extensions) {
+    public void addExtensions(Collection<PacketExtension> extensions) {
         if (extensions == null) return;
-        for (ExtensionElement packetExtension : extensions) {
+        for (PacketExtension packetExtension : extensions) {
             addExtension(packetExtension);
         }
     }
@@ -399,7 +340,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      */
     public boolean hasExtension(String namespace) {
         synchronized (packetExtensions) {
-            for (ExtensionElement packetExtension : packetExtensions.values()) {
+            for (PacketExtension packetExtension : packetExtensions.values()) {
                 if (packetExtension.getNamespace().equals(namespace)) {
                     return true;
                 }
@@ -415,7 +356,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @param namespace
      * @return the removed packet extension or null.
      */
-    public ExtensionElement removeExtension(String elementName, String namespace) {
+    public PacketExtension removeExtension(String elementName, String namespace) {
         String key = XmppStringUtils.generateKey(elementName, namespace);
         synchronized (packetExtensions) {
             return packetExtensions.remove(key);
@@ -428,7 +369,7 @@ public abstract class Stanza implements TopLevelStreamElement {
      * @param extension the packet extension to remove.
      * @return the removed packet extension or null.
      */
-    public ExtensionElement removeExtension(ExtensionElement extension)  {
+    public PacketExtension removeExtension(PacketExtension extension)  {
         return removeExtension(extension.getElementName(), extension.getNamespace());
     }
 
@@ -448,7 +389,7 @@ public abstract class Stanza implements TopLevelStreamElement {
     protected final XmlStringBuilder getExtensionsXML() {
         XmlStringBuilder xml = new XmlStringBuilder();
         // Add in all standard extension sub-packets.
-        for (ExtensionElement extension : getExtensions()) {
+        for (PacketExtension extension : getExtensions()) {
             xml.append(extension.toXML());
         }
         return xml;

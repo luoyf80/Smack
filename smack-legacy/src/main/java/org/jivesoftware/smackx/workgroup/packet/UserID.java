@@ -19,14 +19,12 @@ package org.jivesoftware.smackx.workgroup.packet;
 
 import java.io.IOException;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
-import org.jivesoftware.smack.util.ParserUtils;
-import org.jxmpp.jid.Jid;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-public class UserID implements ExtensionElement {
+public class UserID implements PacketExtension {
 
     /**
      * Element name of the packet extension.
@@ -38,13 +36,13 @@ public class UserID implements ExtensionElement {
      */
     public static final String NAMESPACE = "http://jivesoftware.com/protocol/workgroup";
 
-    private Jid userID;
+    private String userID;
 
-    public UserID(Jid userID) {
+    public UserID(String userID) {
         this.userID = userID;
     }
 
-    public Jid getUserID() {
+    public String getUserID() {
         return this.userID;
     }
 
@@ -66,12 +64,12 @@ public class UserID implements ExtensionElement {
         return buf.toString();
     }
 
-    public static class Provider extends ExtensionElementProvider<UserID> {
+    public static class Provider extends PacketExtensionProvider<UserID> {
 
         @Override
         public UserID parse(XmlPullParser parser, int initialDepth)
                         throws XmlPullParserException, IOException {
-            Jid userID = ParserUtils.getJidAttribute(parser, "id");
+            String userID = parser.getAttributeValue("", "id");
 
             // Advance to end of extension.
             parser.next();

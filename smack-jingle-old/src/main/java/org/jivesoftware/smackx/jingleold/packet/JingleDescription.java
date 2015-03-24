@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smackx.jingleold.media.PayloadType;
 
 /**
@@ -30,7 +30,7 @@ import org.jivesoftware.smackx.jingleold.media.PayloadType;
  *
  * @author Alvaro Saurin <alvaro.saurin@gmail.com>
  */
-public abstract class JingleDescription implements ExtensionElement {
+public abstract class JingleDescription implements PacketExtension {
 
 	private static final Logger LOGGER = Logger.getLogger(JingleDescription.class.getName());
 
@@ -125,7 +125,7 @@ public abstract class JingleDescription implements ExtensionElement {
         Iterator<PayloadType> jinglePtsIter = getPayloadTypes();
 
         while (jinglePtsIter.hasNext()) {
-            PayloadType jpt = jinglePtsIter.next();
+            PayloadType jpt = (PayloadType) jinglePtsIter.next();
             if (jpt instanceof PayloadType.Audio) {
                 PayloadType.Audio jpta = (PayloadType.Audio) jpt;
                 result.add(jpta);

@@ -93,7 +93,7 @@ public class HttpServer {
                 processRequest();
             }
             catch (Exception e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
         }
 
@@ -139,7 +139,7 @@ public class HttpServer {
             }
             catch (Exception e) {
                 // Do Nothing
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
         }
     }

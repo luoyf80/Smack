@@ -1,14 +1,14 @@
-Provider Architecture: Stanza Extensions and Custom IQ's
+Provider Architecture: Packet Extensions and Custom IQ's
 ========================================================
 
-[Back](index.md)
+[Back](index.html)
 
 Introduction
 ------------
 
 The Smack provider architecture is a system for plugging in custom XML parsing
 of packet extensions and IQ packets. The standard [Smack
-Extensions](extensions/index.md) are built using the provider architecture.
+Extensions](extensions/index.html) are built using the provider architecture.
 There are two types of providers:
 
   * `IQProvider` -- parses IQ requests into Java objects.
@@ -73,7 +73,7 @@ an XMPP time packet resembles the following:
 
 ### Introspection
 
-_Time Stanza_
+_Time Packet_
 
 
 	<iq type='result' to='joe@example.com' from='mary@example.com' id='time_1'>
@@ -190,7 +190,7 @@ public class MyIQProvider extends IQProvider<MyIQ> {
 
 ### DiscoItemsProvider
 
-_Disco Items Stanza_
+_Disco Items Packet_
 
 
 
@@ -264,11 +264,11 @@ _Disco Items IQProvider_
 Extension Providers
 -------------------
 
-Stanza extension providers are responsible for parsing packet extensions,
+Packet extension providers are responsible for parsing packet extensions,
 which are child elements in a custom namespace of IQ, message and presence
 packets.
 
-_Pubsub Subscription Stanza_
+_Pubsub Subscription Packet_
 
 
 	<iq type='result' from='pubsub.shakespeare.lit' to='francisco@denmark.lit/barracks' id='sub1'>

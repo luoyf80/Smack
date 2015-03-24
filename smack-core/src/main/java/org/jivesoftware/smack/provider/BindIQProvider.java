@@ -20,8 +20,6 @@ import java.io.IOException;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Bind;
-import org.jxmpp.jid.FullJid;
-import org.jxmpp.jid.impl.JidCreate;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -42,8 +40,7 @@ public class BindIQProvider extends IQProvider<Bind> {
                     bind = Bind.newSet(parser.nextText());
                     break;
                 case "jid":
-                    FullJid fullJid = JidCreate.fullFrom(parser.nextText()); 
-                    bind = Bind.newResult(fullJid);
+                    bind = Bind.newResult(parser.nextText());
                     break;
                 }
                 break;

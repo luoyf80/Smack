@@ -17,6 +17,7 @@
 
 package org.jivesoftware.smack.filter;
 
+import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.util.StringUtils;
 
@@ -25,7 +26,7 @@ import org.jivesoftware.smack.util.StringUtils;
  *
  * @author Matt Tucker
  */
-public class ThreadFilter extends FlexibleStanzaTypeFilter<Message> implements StanzaFilter {
+public class ThreadFilter implements PacketFilter {
 
     private final String thread;
 
@@ -39,13 +40,7 @@ public class ThreadFilter extends FlexibleStanzaTypeFilter<Message> implements S
         this.thread = thread;
     }
 
-    @Override
-    protected boolean acceptSpecific(Message message) {
-        return thread.equals(message.getThread());
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + ": thread=" + thread;
+    public boolean accept(Stanza packet) {
+        return packet instanceof Message && thread.equals(((Message) packet).getThread());
     }
 }

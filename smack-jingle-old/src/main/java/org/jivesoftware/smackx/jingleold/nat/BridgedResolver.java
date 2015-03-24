@@ -29,8 +29,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Bridged Resolver use a RTPBridge Service to add a relayed candidate.
@@ -41,7 +39,6 @@ import java.util.logging.Logger;
  * The resolver adds this candidate
  */
 public class BridgedResolver extends TransportResolver {
-    private static final Logger LOGGER = Logger.getLogger(BridgedResolver.class.getName());
 
     XMPPConnection connection;
 
@@ -51,7 +48,7 @@ public class BridgedResolver extends TransportResolver {
 
     /**
      * Constructor.
-     * A Bridged Resolver need an XMPPConnection to connect to a RTP Bridge.
+     * A Bridged Resolver need a XMPPConnection to connect to a RTP Bridge.
      */
     public BridgedResolver(XMPPConnection connection) {
         super();
@@ -63,9 +60,8 @@ public class BridgedResolver extends TransportResolver {
      * <p/>
      * The BridgedResolver takes the IP addresse and ports of a jmf proxy service.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public synchronized void resolve(JingleSession session) throws XMPPException, NotConnectedException, InterruptedException {
+    public synchronized void resolve(JingleSession session) throws XMPPException, NotConnectedException {
 
         setResolveInit();
 
@@ -102,7 +98,7 @@ public class BridgedResolver extends TransportResolver {
         setResolveEnd();
     }
 
-    public void initialize() throws SmackException, XMPPErrorException, InterruptedException {
+    public void initialize() throws SmackException, XMPPErrorException {
 
         clearCandidates();
 
@@ -125,7 +121,7 @@ public class BridgedResolver extends TransportResolver {
             ifaces = NetworkInterface.getNetworkInterfaces();
         }
         catch (SocketException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
 
         while (ifaces.hasMoreElements()) {
@@ -145,7 +141,7 @@ public class BridgedResolver extends TransportResolver {
             return InetAddress.getLocalHost().getHostAddress();
         }
         catch (Exception e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
 
         return "127.0.0.1";

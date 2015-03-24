@@ -20,31 +20,31 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Stanza;
 
-public class ShortcutPredicates implements StanzaFilter {
+public class ShortcutPredicates implements PacketFilter {
 
-    private final Set<StanzaFilter> predicates = new LinkedHashSet<StanzaFilter>();
+    private final Set<PacketFilter> predicates = new LinkedHashSet<PacketFilter>();
 
     public ShortcutPredicates() {
     }
 
-    public ShortcutPredicates(Collection<? extends StanzaFilter> predicates) {
+    public ShortcutPredicates(Collection<? extends PacketFilter> predicates) {
         this.predicates.addAll(predicates);
     }
 
-    public boolean addPredicate(StanzaFilter predicate) {
+    public boolean addPredicate(PacketFilter predicate) {
         return predicates.add(predicate);
     }
 
-    public boolean removePredicate(StanzaFilter prediacte) {
+    public boolean removePredicate(PacketFilter prediacte) {
         return predicates.remove(prediacte);
     }
 
     @Override
     public boolean accept(Stanza packet) {
-        for (StanzaFilter predicate : predicates) {
+        for (PacketFilter predicate : predicates) {
             if (predicate.accept(packet)) {
                 return true;
             }

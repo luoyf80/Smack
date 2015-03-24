@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2015 Florian Schmaus
+ * Copyright 2003-2007 Jive Software.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.igniterealtime.smack.inttest;
 
-import java.util.logging.Logger;
+package org.jivesoftware.smack.provider;
 
-public abstract class AbstractSmackIntTest {
 
-    protected static final Logger LOGGER = Logger.getLogger(AbstractSmackIntTest.class.getName());
+import org.jivesoftware.smack.packet.PacketExtension;
+
+/**
+ * An abstract class for parsing custom packets extensions. Each PacketExtensionProvider must
+ * be registered with the ProviderManager class for it to be used. Every implementation
+ * of this abstract class <b>must</b> have a public, no-argument constructor.
+ *
+ * @author Matt Tucker
+ */
+public abstract class PacketExtensionProvider<PE extends PacketExtension> extends Provider<PE> {
 
 }

@@ -19,16 +19,13 @@ package org.jivesoftware.smackx.workgroup.agent;
 
 import org.jivesoftware.smackx.workgroup.packet.AgentStatus;
 import org.jivesoftware.smackx.workgroup.packet.AgentStatusRequest;
-import org.jivesoftware.smack.StanzaListener;
+import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.filter.StanzaFilter;
-import org.jivesoftware.smack.filter.StanzaTypeFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
+import org.jivesoftware.smack.filter.PacketTypeFilter;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.packet.Presence;
-import org.jxmpp.jid.FullJid;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.util.ArrayList;
@@ -37,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -54,10 +52,10 @@ public class AgentRoster {
     private static final int EVENT_PRESENCE_CHANGED = 2;
 
     private XMPPConnection connection;
-    private Jid workgroupJID;
+    private String workgroupJID;
     private List<String> entries;
     private List<AgentRosterListener> listeners;
-    private final Map<Jid, Map<Resourcepart, Presence>> presenceMap = new HashMap<>();
+    private Map<String, Map<String, Presence>> presenceMap;
     // The roster is marked as initialized when at least a single roster packet
     // has been recieved and processed.
     boolean rosterInitialized = false;
@@ -67,24 +65,24 @@ public class AgentRoster {
      *
      * @param connection an XMPP connection.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    AgentRoster(XMPPConnection connection, Jid workgroupJID) throws NotConnectedException, InterruptedException {
+    AgentRoster(XMPPConnection connection, String workgroupJID) throws NotConnectedException {
         this.connection = connection;
         this.workgroupJID = workgroupJID;
         entries = new ArrayList<String>();
         listeners = new ArrayList<AgentRosterListener>();
+        presenceMap = new HashMap<String, Map<String, Presence>>();
         // Listen for any roster packets.
-        StanzaFilter rosterFilter = new StanzaTypeFilter(AgentStatusRequest.class);
-        connection.addAsyncStanzaListener(new AgentStatusListener(), rosterFilter);
+        PacketFilter rosterFilter = new PacketTypeFilter(AgentStatusRequest.class);
+        connection.addAsyncPacketListener(new AgentStatusListener(), rosterFilter);
         // Listen for any presence packets.
-        connection.addAsyncStanzaListener(new PresencePacketListener(),
-                new StanzaTypeFilter(Presence.class));
+        connection.addAsyncPacketListener(new PresencePacketListener(),
+                new PacketTypeFilter(Presence.class));
 
         // Send request for roster.
         AgentStatusRequest request = new AgentStatusRequest();
         request.setTo(workgroupJID);
-        connection.sendStanza(request);
+        connection.sendPacket(request);
     }
 
     /**
@@ -92,12 +90,11 @@ public class AgentRoster {
      * which means the method will return immediately, and the roster will be
      * reloaded at a later point when the server responds to the reload request.
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    public void reload() throws NotConnectedException, InterruptedException {
+    public void reload() throws NotConnectedException {
         AgentStatusRequest request = new AgentStatusRequest();
         request.setTo(workgroupJID);
-        connection.sendStanza(request);
+        connection.sendPacket(request);
     }
 
     /**
@@ -119,7 +116,7 @@ public class AgentRoster {
                     if (entries.contains(jid)) {
                         // Fire the agent added event
                         listener.agentAdded(jid);
-                        Map<Resourcepart, Presence> userPresences = presenceMap.get(jid);
+                        Map<String,Presence> userPresences = presenceMap.get(jid);
                         if (userPresences != null) {
                             Iterator<Presence> presences = userPresences.values().iterator();
                             while (presences.hasNext()) {
@@ -177,14 +174,14 @@ public class AgentRoster {
      *            or "user@domain/resource").
      * @return true if the XMPP address is an agent in the workgroup.
      */
-    public boolean contains(Jid jid) {
+    public boolean contains(String jid) {
         if (jid == null) {
             return false;
         }
         synchronized (entries) {
             for (Iterator<String> i = entries.iterator(); i.hasNext();) {
                 String entry = i.next();
-                if (entry.equals(jid)) {
+                if (entry.toLowerCase(Locale.US).equals(jid.toLowerCase())) {
                     return true;
                 }
             }
@@ -201,9 +198,9 @@ public class AgentRoster {
      * @return the agent's current presence, or <tt>null</tt> if the agent is unavailable
      *         or if no presence information is available..
      */
-    public Presence getPresence(Jid user) {
-        Jid key = getPresenceMapKey(user);
-        Map<Resourcepart, Presence> userPresences = presenceMap.get(key);
+    public Presence getPresence(String user) {
+        String key = getPresenceMapKey(user);
+        Map<String, Presence> userPresences = presenceMap.get(key);
         if (userPresences == null) {
             Presence presence = new Presence(Presence.Type.unavailable);
             presence.setFrom(user);
@@ -212,12 +209,12 @@ public class AgentRoster {
         else {
             // Find the resource with the highest priority
             // Might be changed to use the resource with the highest availability instead.
-            Iterator<Resourcepart> it = userPresences.keySet().iterator();
+            Iterator<String> it = userPresences.keySet().iterator();
             Presence p;
             Presence presence = null;
 
             while (it.hasNext()) {
-                p = userPresences.get(it.next());
+                p = (Presence)userPresences.get(it.next());
                 if (presence == null){
                     presence = p;
                 }
@@ -249,10 +246,10 @@ public class AgentRoster {
      * @param user the fully qualified xmpp ID, e.g. jdoe@example.com/Work.
      * @return the key to use in the presenceMap for the fully qualified xmpp ID.
      */
-    private Jid getPresenceMapKey(Jid user) {
-        Jid key = user;
+    private String getPresenceMapKey(String user) {
+        String key = user;
         if (!contains(user)) {
-            key = user.asBareJidIfPossible();
+            key = XmppStringUtils.parseBareJid(user).toLowerCase(Locale.US);
         }
         return key;
     }
@@ -284,16 +281,16 @@ public class AgentRoster {
     /**
      * Listens for all presence packets and processes them.
      */
-    private class PresencePacketListener implements StanzaListener {
+    private class PresencePacketListener implements PacketListener {
         public void processPacket(Stanza packet) {
             Presence presence = (Presence)packet;
-            FullJid from = presence.getFrom().asFullJidIfPossible();
+            String from = presence.getFrom();
             if (from == null) {
                 // TODO Check if we need to ignore these presences or this is a server bug?
-                LOGGER.warning("Presence with non full JID from: " + presence.toXML());
+                LOGGER.warning("Presence with no FROM: " + presence.toXML());
                 return;
             }
-            Jid key = getPresenceMapKey(from);
+            String key = getPresenceMapKey(from);
 
             // If an "available" packet, add it to the presence map. Each presence map will hold
             // for a particular user a map with the presence packets saved for each resource.
@@ -309,10 +306,10 @@ public class AgentRoster {
                 else if (!workgroupJID.equals(agentStatus.getWorkgroupJID())) {
                     return;
                 }
-                Map<Resourcepart, Presence> userPresences;
+                Map<String, Presence> userPresences;
                 // Get the user presence map
                 if (presenceMap.get(key) == null) {
-                    userPresences = new HashMap<>();
+                    userPresences = new HashMap<String, Presence>();
                     presenceMap.put(key, userPresences);
                 }
                 else {
@@ -320,13 +317,13 @@ public class AgentRoster {
                 }
                 // Add the new presence, using the resources as a key.
                 synchronized (userPresences) {
-                    userPresences.put(from.getResourcepart(), presence);
+                    userPresences.put(XmppStringUtils.parseResource(from), presence);
                 }
                 // Fire an event.
                 synchronized (entries) {
                     for (Iterator<String> i = entries.iterator(); i.hasNext();) {
                         String entry = i.next();
-                        if (entry.equals(key.asBareJidIfPossible())) {
+                        if (entry.toLowerCase(Locale.US).equals(XmppStringUtils.parseBareJid(key).toLowerCase())) {
                             fireEvent(EVENT_PRESENCE_CHANGED, packet);
                         }
                     }
@@ -335,9 +332,9 @@ public class AgentRoster {
             // If an "unavailable" packet, remove any entries in the presence map.
             else if (presence.getType() == Presence.Type.unavailable) {
                 if (presenceMap.get(key) != null) {
-                    Map<Resourcepart, Presence> userPresences = presenceMap.get(key);
+                    Map<String,Presence> userPresences = presenceMap.get(key);
                     synchronized (userPresences) {
-                        userPresences.remove(from.getResourcepart());
+                        userPresences.remove(XmppStringUtils.parseResource(from));
                     }
                     if (userPresences.isEmpty()) {
                         presenceMap.remove(key);
@@ -346,8 +343,8 @@ public class AgentRoster {
                 // Fire an event.
                 synchronized (entries) {
                     for (Iterator<String> i = entries.iterator(); i.hasNext();) {
-                        String entry = i.next();
-                        if (entry.equals(key.asBareJidIfPossible())) {
+                        String entry = (String)i.next();
+                        if (entry.toLowerCase(Locale.US).equals(XmppStringUtils.parseBareJid(key).toLowerCase())) {
                             fireEvent(EVENT_PRESENCE_CHANGED, packet);
                         }
                     }
@@ -359,7 +356,7 @@ public class AgentRoster {
     /**
      * Listens for all roster packets and processes them.
      */
-    private class AgentStatusListener implements StanzaListener {
+    private class AgentStatusListener implements PacketListener {
 
         public void processPacket(Stanza packet) {
             if (packet instanceof AgentStatusRequest) {

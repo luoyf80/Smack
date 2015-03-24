@@ -17,8 +17,6 @@
 
 package org.jivesoftware.smack.packet;
 
-import org.jxmpp.jid.FullJid;
-
 /**
  * IQ packet used by Smack to bind a resource and to obtain the jid assigned by the server.
  * There are two ways to bind a resource. One is simply sending an empty Bind packet where the
@@ -36,9 +34,9 @@ public class Bind extends IQ {
     public static final String NAMESPACE = "urn:ietf:params:xml:ns:xmpp-bind";
 
     private final String resource;
-    private final FullJid jid;
+    private final String jid;
 
-    public Bind(String resource, FullJid jid) {
+    public Bind(String resource, String jid) {
         super(ELEMENT, NAMESPACE);
         this.resource = resource;
         this.jid = jid;
@@ -48,7 +46,7 @@ public class Bind extends IQ {
         return resource;
     }
 
-    public FullJid getJid() {
+    public String getJid() {
         return jid;
     }
 
@@ -58,7 +56,7 @@ public class Bind extends IQ {
         return bind;
     }
 
-    public static Bind newResult(FullJid jid) {
+    public static Bind newResult(String jid) {
         return new Bind(null, jid);
     }
 
@@ -70,7 +68,7 @@ public class Bind extends IQ {
         return xml;
     }
 
-    public static class Feature implements ExtensionElement {
+    public static class Feature implements PacketExtension {
 
         public static final Feature INSTANCE = new Feature();
 

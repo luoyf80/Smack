@@ -18,9 +18,8 @@
 package org.jivesoftware.smackx.address.packet;
 
 import org.jivesoftware.smack.packet.NamedElement;
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.util.XmlStringBuilder;
-import org.jxmpp.jid.Jid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,7 @@ import java.util.List;
  *
  * @author Gaston Dombiak
  */
-public class MultipleAddresses implements ExtensionElement {
+public class MultipleAddresses implements PacketExtension {
 
     public static final String NAMESPACE = "http://jabber.org/protocol/address";
     public static final String ELEMENT = "addresses";
@@ -65,7 +64,7 @@ public class MultipleAddresses implements ExtensionElement {
      * @param delivered true when the packet was already delivered to this address.
      * @param uri used to specify an external system address, such as a sip:, sips:, or im: URI.
      */
-    public void addAddress(Type type, Jid jid, String node, String desc, boolean delivered,
+    public void addAddress(Type type, String jid, String node, String desc, boolean delivered,
             String uri) {
         // Create a new address with the specificed configuration
         Address address = new Address(type);
@@ -133,7 +132,7 @@ public class MultipleAddresses implements ExtensionElement {
         public static final String ELEMENT = "address";
 
         private final Type type;
-        private Jid jid;
+        private String jid;
         private String node;
         private String description;
         private boolean delivered;
@@ -147,11 +146,11 @@ public class MultipleAddresses implements ExtensionElement {
             return type;
         }
 
-        public Jid getJid() {
+        public String getJid() {
             return jid;
         }
 
-        private void setJid(Jid jid) {
+        private void setJid(String jid) {
             this.jid = jid;
         }
 

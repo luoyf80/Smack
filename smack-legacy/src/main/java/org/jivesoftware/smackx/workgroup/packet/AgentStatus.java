@@ -26,8 +26,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.packet.PacketExtension;
+import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -36,7 +36,7 @@ import org.xmlpull.v1.XmlPullParserException;
  *
  * @author Matt Tucker
  */
-public class AgentStatus implements ExtensionElement {
+public class AgentStatus implements PacketExtension {
 
     private static final SimpleDateFormat UTC_FORMAT = new SimpleDateFormat("yyyyMMdd'T'HH:mm:ss");
 
@@ -102,7 +102,7 @@ public class AgentStatus implements ExtensionElement {
         if (!currentChats.isEmpty()) {
             buf.append("<current-chats xmlns= \"http://jivesoftware.com/protocol/workgroup\">");
             for (Iterator<ChatInfo> it = currentChats.iterator(); it.hasNext();) {
-                buf.append(it.next().toXML());
+                buf.append(((ChatInfo)it.next()).toXML());
             }
             buf.append("</current-chats>");
         }
@@ -223,7 +223,7 @@ public class AgentStatus implements ExtensionElement {
     /**
      * Packet extension provider for AgentStatus packets.
      */
-    public static class Provider extends ExtensionElementProvider<AgentStatus> {
+    public static class Provider extends PacketExtensionProvider<AgentStatus> {
 
         @Override
         public AgentStatus parse(XmlPullParser parser, int initialDepth) throws XmlPullParserException, IOException {
@@ -251,7 +251,7 @@ public class AgentStatus implements ExtensionElement {
             return agentStatus;
         }
 
-        private static ChatInfo parseChatInfo(XmlPullParser parser) {
+        private ChatInfo parseChatInfo(XmlPullParser parser) {
 
             String sessionID = parser.getAttributeValue("", "sessionID");
             String userID = parser.getAttributeValue("", "userID");

@@ -27,7 +27,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -78,7 +77,7 @@ public class ImageTransmitter implements Runnable {
 
         }
         catch (AWTException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
 
     }
@@ -142,7 +141,7 @@ public class ImageTransmitter implements Runnable {
                                                 socket.send(p);
                                             }
                                             catch (IOException e) {
-                                                LOGGER.log(Level.WARNING, "exception", e);
+                                                e.printStackTrace();
                                             }
 
                                             tiles[i][j] = pixels;
@@ -158,7 +157,7 @@ public class ImageTransmitter implements Runnable {
                             }
                         }
                         catch (InterruptedException e) {
-                            LOGGER.log(Level.WARNING, "exception", e);
+                            e.printStackTrace();
                         }
                     }
                 }
@@ -171,7 +170,7 @@ public class ImageTransmitter implements Runnable {
                         Thread.sleep(500 - trace);
                     }
                     catch (InterruptedException e) {
-                        LOGGER.log(Level.WARNING, "exception", e);
+                        e.printStackTrace();
                     }
                 }
             }

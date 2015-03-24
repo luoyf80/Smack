@@ -17,7 +17,12 @@
 
 package org.jivesoftware.smack.filter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.util.Objects;
 
 /**
  * Implements the logical AND operation over two or more packet filters.
@@ -25,14 +30,19 @@ import org.jivesoftware.smack.packet.Stanza;
  *
  * @author Matt Tucker
  */
-public class AndFilter extends AbstractListFilter implements StanzaFilter {
+public class AndFilter implements PacketFilter {
+
+    /**
+     * The list of filters.
+     */
+    private final List<PacketFilter> filters;
 
     /**
      * Creates an empty AND filter. Filters should be added using the
-     * {@link #addFilter(StanzaFilter)} method.
+     * {@link #addFilter(PacketFilter)} method.
      */
     public AndFilter() {
-        super();
+        filters = new ArrayList<PacketFilter>();
     }
 
     /**
@@ -40,12 +50,27 @@ public class AndFilter extends AbstractListFilter implements StanzaFilter {
      *
      * @param filters the filters to add.
      */
-    public AndFilter(StanzaFilter... filters) {
-        super(filters);
+    public AndFilter(PacketFilter... filters) {
+        Objects.requireNonNull(filters, "Parameter must not be null.");
+        for(PacketFilter filter : filters) {
+            Objects.requireNonNull(filter, "Parameter must not be null.");
+        }
+        this.filters = new ArrayList<PacketFilter>(Arrays.asList(filters));
+    }
+
+    /**
+     * Adds a filter to the filter list for the AND operation. A packet
+     * will pass the filter if all of the filters in the list accept it.
+     *
+     * @param filter a filter to add to the filter list.
+     */
+    public void addFilter(PacketFilter filter) {
+        Objects.requireNonNull(filter, "Parameter must not be null.");
+        filters.add(filter);
     }
 
     public boolean accept(Stanza packet) {
-        for (StanzaFilter filter : filters) {
+        for (PacketFilter filter : filters) {
             if (!filter.accept(packet)) {
                 return false;
             }
@@ -53,4 +78,7 @@ public class AndFilter extends AbstractListFilter implements StanzaFilter {
         return true;
     }
 
+    public String toString() {
+        return filters.toString();
+    }
 }

@@ -16,15 +16,14 @@
  */
 package org.jivesoftware.smack.filter;
 
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
-import org.jxmpp.jid.DomainBareJid;
-import org.jxmpp.jid.FullJid;
-import org.jxmpp.jid.Jid;
+import org.jxmpp.util.XmppStringUtils;
 
 /**
  * Filters for packets which are a valid reply to an IQ request.
@@ -49,14 +48,14 @@ import org.jxmpp.jid.Jid;
  * @author Lars Noschinski
  *
  */
-public class IQReplyFilter implements StanzaFilter {
+public class IQReplyFilter implements PacketFilter {
     private static final Logger LOGGER = Logger.getLogger(IQReplyFilter.class.getName());
 
-    private final StanzaFilter iqAndIdFilter;
+    private final PacketFilter iqAndIdFilter;
     private final OrFilter fromFilter;
-    private final Jid to;
-    private final FullJid local;
-    private final DomainBareJid server;
+    private final String to;
+    private final String local;
+    private final String server;
     private final String packetId;
 
     /**
@@ -85,17 +84,22 @@ public class IQReplyFilter implements StanzaFilter {
         if (!iqPacket.isRequestIQ()) {
             throw new IllegalArgumentException("IQ must be a request IQ, i.e. of type 'get' or 'set'.");
         }
-        to = iqPacket.getTo();
-        local = conn.getUser();
-        if (local == null) {
+        if (iqPacket.getTo() != null) {
+            to = iqPacket.getTo().toLowerCase(Locale.US);
+        } else {
+            to = null;
+        }
+        final String localJid = conn.getUser();
+        if (localJid == null) {
             throw new IllegalArgumentException("Must have a local (user) JID set. Either you didn't configure one or you where not connected at least once");
         }
+        local = localJid.toLowerCase(Locale.US);
 
-        server = conn.getServiceName();
+        server = conn.getServiceName().toLowerCase(Locale.US);
         packetId = iqPacket.getStanzaId();
 
-        StanzaFilter iqFilter = new OrFilter(IQTypeFilter.ERROR, IQTypeFilter.RESULT);
-        StanzaFilter idFilter = new StanzaIdFilter(iqPacket);
+        PacketFilter iqFilter = new OrFilter(IQTypeFilter.ERROR, IQTypeFilter.RESULT);
+        PacketFilter idFilter = new PacketIDFilter(iqPacket);
         iqAndIdFilter = new AndFilter(iqFilter, idFilter);
         fromFilter = new OrFilter();
         fromFilter.addFilter(FromMatchesFilter.createFull(to));
@@ -103,7 +107,7 @@ public class IQReplyFilter implements StanzaFilter {
             fromFilter.addFilter(FromMatchesFilter.createBare(local));
             fromFilter.addFilter(FromMatchesFilter.createFull(server));
         }
-        else if (to.equals(local.asBareJid())) {
+        else if (to.equals(XmppStringUtils.parseBareJid(local))) {
             fromFilter.addFilter(FromMatchesFilter.createFull(null));
         }
     }
@@ -126,12 +130,4 @@ public class IQReplyFilter implements StanzaFilter {
         }
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(": iqAndIdFilter (").append(iqAndIdFilter.toString()).append("), ");
-        sb.append(": fromFilter (").append(fromFilter.toString()).append(')');
-        return sb.toString();
-    }
 }

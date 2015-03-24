@@ -30,7 +30,6 @@ import org.jivesoftware.smack.SmackException.IllegalStateChangeException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.packet.XMPPError;
-import org.jxmpp.jid.Jid;
 
 /**
  * Handles the sending of a file to another user. File transfer's in jabber have
@@ -71,11 +70,11 @@ public class OutgoingFileTransfer extends FileTransfer {
 
 	private OutputStream outputStream;
 
-	private Jid initiator;
+	private String initiator;
 
 	private Thread transferThread;
 
-	protected OutgoingFileTransfer(Jid initiator, Jid target,
+	protected OutgoingFileTransfer(String initiator, String target,
 			String streamID, FileTransferNegotiator transferNegotiator) {
 		super(target, streamID, transferNegotiator);
 		this.initiator = initiator;
@@ -121,10 +120,9 @@ public class OutgoingFileTransfer extends FileTransfer {
 	 *             Thrown if an error occurs during the file transfer
 	 *             negotiation process.
 	 * @throws SmackException if there was no response from the server.
-	 * @throws InterruptedException 
 	 */
 	public synchronized OutputStream sendFile(String fileName, long fileSize,
-			String description) throws XMPPException, SmackException, InterruptedException {
+			String description) throws XMPPException, SmackException {
 		if (isDone() || outputStream != null) {
 			throw new IllegalStateException(
 					"The negotation process has already"
@@ -375,7 +373,7 @@ public class OutgoingFileTransfer extends FileTransfer {
 	}
 
 	private OutputStream negotiateStream(String fileName, long fileSize,
-			String description) throws SmackException, XMPPException, InterruptedException {
+			String description) throws SmackException, XMPPException {
 		// Negotiate the file transfer profile
 
         if (!updateStatus(Status.initial, Status.negotiating_transfer)) {

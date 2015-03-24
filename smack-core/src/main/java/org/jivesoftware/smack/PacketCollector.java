@@ -19,30 +19,33 @@ package org.jivesoftware.smack;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jivesoftware.smack.SmackException.NoResponseException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
-import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Stanza;
 
 /**
  * Provides a mechanism to collect packets into a result queue that pass a
  * specified filter. The collector lets you perform blocking and polling
  * operations on the result queue. So, a PacketCollector is more suitable to
- * use than a {@link StanzaListener} when you need to wait for a specific
+ * use than a {@link PacketListener} when you need to wait for a specific
  * result.<p>
  *
  * Each packet collector will queue up a configured number of packets for processing before
  * older packets are automatically dropped.  The default number is retrieved by 
  * {@link SmackConfiguration#getPacketCollectorSize()}.
  *
- * @see XMPPConnection#createPacketCollector(StanzaFilter)
+ * @see XMPPConnection#createPacketCollector(PacketFilter)
  * @author Matt Tucker
  */
 public class PacketCollector {
 
-    private final StanzaFilter packetFilter;
+    private static final Logger LOGGER = Logger.getLogger(PacketCollector.class.getName());
 
+    private final PacketFilter packetFilter;
     private final ArrayBlockingQueue<Stanza> resultQueue;
 
     /**
@@ -86,20 +89,8 @@ public class PacketCollector {
      * filter is used to determine what packets are queued as results.
      *
      * @return the packet filter.
-     * @deprecated use {@link #getStanzaFilter()} instead.
      */
-    @Deprecated
-    public StanzaFilter getPacketFilter() {
-        return getStanzaFilter();
-    }
-
-    /**
-     * Returns the stanza filter associated with this stanza collector. The stanza
-     * filter is used to determine what stanzas are queued as results.
-     *
-     * @return the stanza filter.
-     */
-    public StanzaFilter getStanzaFilter() {
+    public PacketFilter getPacketFilter() {
         return packetFilter;
     }
 
@@ -140,14 +131,18 @@ public class PacketCollector {
      * available.
      * 
      * @return the next available packet.
-     * @throws InterruptedException 
      */
     @SuppressWarnings("unchecked")
-    public <P extends Stanza> P nextResultBlockForever() throws InterruptedException {
+    public <P extends Stanza> P nextResultBlockForever() {
         throwIfCancelled();
         P res = null;
         while (res == null) {
-            res = (P) resultQueue.take();
+            try {
+                res = (P) resultQueue.take();
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.FINE,
+                                "nextResultBlockForever was interrupted", e);
+            }
         }
         return res;
     }
@@ -157,9 +152,8 @@ public class PacketCollector {
      * timeout has elapsed.
      * 
      * @return the next available packet.
-     * @throws InterruptedException 
      */
-    public <P extends Stanza> P nextResult() throws InterruptedException {
+    public <P extends Stanza> P nextResult() {
         return nextResult(connection.getPacketReplyTimeout());
     }
 
@@ -172,16 +166,20 @@ public class PacketCollector {
      *
      * @param timeout the timeout in milliseconds.
      * @return the next available packet.
-     * @throws InterruptedException 
      */
     @SuppressWarnings("unchecked")
-    public <P extends Stanza> P nextResult(long timeout) throws InterruptedException {
+    public <P extends Stanza> P nextResult(long timeout) {
         throwIfCancelled();
         P res = null;
         long remainingWait = timeout;
         waitStart = System.currentTimeMillis();
         do {
-            res = (P) resultQueue.poll(remainingWait, TimeUnit.MILLISECONDS);
+            try {
+                res = (P) resultQueue.poll(remainingWait, TimeUnit.MILLISECONDS);
+            }
+            catch (InterruptedException e) {
+                LOGGER.log(Level.FINE, "nextResult was interrupted", e);
+            }
             if (res != null) {
                 return res;
             }
@@ -198,9 +196,8 @@ public class PacketCollector {
      * @return the next available packet.
      * @throws XMPPErrorException in case an error response.
      * @throws NoResponseException if there was no response from the server.
-     * @throws InterruptedException 
      */
-    public <P extends Stanza> P nextResultOrThrow() throws NoResponseException, XMPPErrorException, InterruptedException {
+    public <P extends Stanza> P nextResultOrThrow() throws NoResponseException, XMPPErrorException {
         return nextResultOrThrow(connection.getPacketReplyTimeout());
     }
 
@@ -212,13 +209,12 @@ public class PacketCollector {
      * @return the next available packet.
      * @throws NoResponseException if there was no response from the server.
      * @throws XMPPErrorException in case an error response.
-     * @throws InterruptedException 
      */
-    public <P extends Stanza> P nextResultOrThrow(long timeout) throws NoResponseException, XMPPErrorException, InterruptedException {
+    public <P extends Stanza> P nextResultOrThrow(long timeout) throws NoResponseException, XMPPErrorException {
         P result = nextResult(timeout);
         cancel();
         if (result == null) {
-            throw NoResponseException.newWith(connection, this);
+            throw new NoResponseException(connection);
         }
 
         XMPPErrorException.ifHasErrorThenThrow(result);
@@ -244,12 +240,10 @@ public class PacketCollector {
      */
     protected void processPacket(Stanza packet) {
         if (packetFilter == null || packetFilter.accept(packet)) {
-            // CHECKSTYLE:OFF
         	while (!resultQueue.offer(packet)) {
         		// Since we know the queue is full, this poll should never actually block.
         		resultQueue.poll();
         	}
-            // CHECKSTYLE:ON
             if (collectorToReset != null) {
                 collectorToReset.waitStart = System.currentTimeMillis();
             }
@@ -272,7 +266,7 @@ public class PacketCollector {
     }
 
     public static class Configuration {
-        private StanzaFilter packetFilter;
+        private PacketFilter packetFilter;
         private int size = SmackConfiguration.getPacketCollectorSize();
         private PacketCollector collectorToReset;
 
@@ -285,22 +279,9 @@ public class PacketCollector {
          * 
          * @param packetFilter
          * @return a reference to this configuration.
-         * @deprecated use {@link #setStanzaFilter(StanzaFilter)} instead.
          */
-        @Deprecated
-        public Configuration setPacketFilter(StanzaFilter packetFilter) {
-            return setStanzaFilter(packetFilter);
-        }
-
-        /**
-         * Set the stanza filter used by this collector. If <code>null</code>, then all stanzas will
-         * get collected by this collector.
-         * 
-         * @param stanzaFilter
-         * @return a reference to this configuration.
-         */
-        public Configuration setStanzaFilter(StanzaFilter stanzaFilter) {
-            this.packetFilter = stanzaFilter;
+        public Configuration setPacketFilter(PacketFilter packetFilter) {
+            this.packetFilter = packetFilter;
             return this;
         }
 

@@ -18,8 +18,6 @@
 package org.jivesoftware.smackx.muc;
 
 import org.jivesoftware.smackx.muc.packet.MUCItem;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.parts.Resourcepart;
 
 /**
  * Represents an affiliation of a user to a given room. The affiliate's information will always have
@@ -30,12 +28,12 @@ import org.jxmpp.jid.parts.Resourcepart;
  */
 public class Affiliate {
     // Fields that must have a value
-    private final Jid jid;
+    private final String jid;
     private final MUCAffiliation affiliation;
 
     // Fields that may have a value
     private final MUCRole role;
-    private final Resourcepart nick;
+    private final String nick;
 
     Affiliate(MUCItem item) {
         this.jid = item.getJid();
@@ -49,7 +47,7 @@ public class Affiliate {
      *
      * @return the bare JID of the affiliated user.
      */
-    public Jid getJid() {
+    public String getJid() {
         return jid;
     }
 
@@ -81,7 +79,7 @@ public class Affiliate {
      * @return the current nickname of the affiliated user in the room or null if the user is not in
      *         the room.
      */
-    public Resourcepart getNick() {
+    public String getNick() {
         return nick;
     }
 }

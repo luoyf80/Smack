@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.packet.IQ;
@@ -35,15 +33,13 @@ import org.jivesoftware.smack.packet.IQ.Type;
  *
  */
 public class ThreadedDummyConnection extends DummyConnection {
-    private static final Logger LOGGER = Logger.getLogger(ThreadedDummyConnection.class.getName());
-
     private BlockingQueue<IQ> replyQ = new ArrayBlockingQueue<IQ>(1);
     private BlockingQueue<Stanza> messageQ = new LinkedBlockingQueue<Stanza>(5);
     private volatile boolean timeout = false;
 
     @Override
-    public void sendStanza(Stanza packet) throws NotConnectedException, InterruptedException {
-        super.sendStanza(packet);
+    public void sendPacket(Stanza packet) throws NotConnectedException {
+        super.sendPacket(packet);
 
         if (packet instanceof IQ && !timeout) {
             timeout = false;
@@ -66,14 +62,14 @@ public class ThreadedDummyConnection extends DummyConnection {
     }
 
     /**
-     * Calling this method will cause the next sendStanza call with an IQ packet to timeout.
+     * Calling this method will cause the next sendPacket call with an IQ packet to timeout.
      * This is accomplished by simply stopping the auto creating of the reply packet 
      * or processing one that was entered via {@link #processPacket(Stanza)}.
      */
     public void setTimeout() {
         timeout = true;
     }
-
+    
     public void addMessage(Message msgToProcess) {
         messageQ.add(msgToProcess);
     }
@@ -86,7 +82,7 @@ public class ThreadedDummyConnection extends DummyConnection {
         if (!messageQ.isEmpty())
             new ProcessQueue(messageQ).start();
         else
-            LOGGER.warning("No messages to process");
+            System.out.println("No messages to process");
     }
 
     class ProcessQueue extends Thread {
@@ -101,12 +97,12 @@ public class ThreadedDummyConnection extends DummyConnection {
             try {
                 processPacket(processQ.take());
             } catch (InterruptedException e) {
-                LOGGER.log(Level.WARNING, "exception", e);
+                e.printStackTrace();
             }
         }
     }
 
-    public static ThreadedDummyConnection newInstance() throws SmackException, IOException, XMPPException, InterruptedException {
+    public static ThreadedDummyConnection newInstance() throws SmackException, IOException, XMPPException {
         ThreadedDummyConnection threadedDummyConnection = new ThreadedDummyConnection();
         threadedDummyConnection.connect();
         return threadedDummyConnection;

@@ -17,8 +17,6 @@
 
 package org.jivesoftware.smackx.muc;
 
-import org.jxmpp.jid.Jid;
-
 /**
  * Default implementation of the UserStatusListener interface.<p>
  *
@@ -30,7 +28,7 @@ import org.jxmpp.jid.Jid;
  */
 public class DefaultUserStatusListener implements UserStatusListener {
 
-    public void kicked(Jid actor, String reason) {
+    public void kicked(String actor, String reason) {
     }
 
     public void voiceGranted() {
@@ -39,7 +37,7 @@ public class DefaultUserStatusListener implements UserStatusListener {
     public void voiceRevoked() {
     }
 
-    public void banned(Jid actor, String reason) {
+    public void banned(String actor, String reason) {
     }
 
     public void membershipGranted() {
@@ -64,9 +62,6 @@ public class DefaultUserStatusListener implements UserStatusListener {
     }
 
     public void adminRevoked() {
-    }
-
-    public void roomDestroyed(MultiUserChat alternateMUC, String reason) {
     }
 
 }

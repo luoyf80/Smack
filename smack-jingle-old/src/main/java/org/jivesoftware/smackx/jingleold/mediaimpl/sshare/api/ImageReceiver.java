@@ -25,8 +25,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * UDP Image Receiver.
@@ -35,7 +33,6 @@ import java.util.logging.Logger;
  * @author Thiago Rocha Camargo
  */
 public class ImageReceiver extends Canvas {
-    private static final Logger LOGGER = Logger.getLogger(ImageReceiver.class.getName());
 
 	private static final long serialVersionUID = -7000112305305269025L;
 	private boolean on = true;
@@ -84,7 +81,7 @@ public class ImageReceiver extends Canvas {
                         }
                     }
                     catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "exception", e);
+                        e.printStackTrace();
                     }
                 }
             }).start();
@@ -104,20 +101,20 @@ public class ImageReceiver extends Canvas {
                                 Thread.sleep(1000);
                             }
                             catch (InterruptedException e) {
-                                LOGGER.log(Level.WARNING, "exception", e);
+                                e.printStackTrace();
                             }
 
                         }
                     }
                     catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "exception", e);
+                        e.printStackTrace();
                     }
                 }
             }).start();
 
         }
         catch (SocketException e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
         this.setSize(width, height);
     }

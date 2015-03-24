@@ -173,10 +173,8 @@ public class STUN extends SimpleIQ {
      * @param connection
      * @return the STUN server address
      * @throws NotConnectedException 
-     * @throws InterruptedException 
      */
-    @SuppressWarnings("deprecation")
-    public static STUN getSTUNServer(XMPPConnection connection) throws NotConnectedException, InterruptedException {
+    public static STUN getSTUNServer(XMPPConnection connection) throws NotConnectedException {
 
         if (!connection.isConnected()) {
             return null;
@@ -202,9 +200,8 @@ public class STUN extends SimpleIQ {
      * @return true if the server support STUN
      * @throws SmackException 
      * @throws XMPPException 
-     * @throws InterruptedException 
      */
-    public static boolean serviceAvailable(XMPPConnection connection) throws XMPPException, SmackException, InterruptedException {
+    public static boolean serviceAvailable(XMPPConnection connection) throws XMPPException, SmackException {
 
         if (!connection.isConnected()) {
             return false;

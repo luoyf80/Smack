@@ -16,7 +16,7 @@
  */
 package org.jivesoftware.smackx.pubsub;
 
-import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smackx.pubsub.packet.PubSubNamespace;
 
 /**
@@ -24,7 +24,7 @@ import org.jivesoftware.smackx.pubsub.packet.PubSubNamespace;
  * 
  * @author Robin Collier
  */
-public class RetractItem implements ExtensionElement
+public class RetractItem implements PacketExtension
 {
 	private String id;
 
@@ -39,7 +39,7 @@ public class RetractItem implements ExtensionElement
 			throw new IllegalArgumentException("itemId must not be 'null'");
 		id = itemId;
 	}
-
+	
 	public String getId()
 	{
 		return id;

@@ -25,7 +25,6 @@ import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.jxmpp.jid.JidTestUtil;
 
 public class FileTransferNegotiatorTest {
     private DummyConnection connection;
@@ -51,7 +50,7 @@ public class FileTransferNegotiatorTest {
     public void verifyForm() throws Exception {
         FileTransferNegotiator fileNeg = FileTransferNegotiator.getInstanceFor(connection);
         try {
-            fileNeg.negotiateOutgoingTransfer(JidTestUtil.DUMMY_AT_EXAMPLE_ORG, "streamid", "file", 1024, null, 10);
+            fileNeg.negotiateOutgoingTransfer("me", "streamid", "file", 1024, null, 10);
         } catch (NoResponseException e) {
             // Ignore
         }

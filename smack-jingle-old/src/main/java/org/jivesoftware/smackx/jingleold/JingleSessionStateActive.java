@@ -16,9 +16,6 @@
  */
 package org.jivesoftware.smackx.jingleold;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smackx.jingleold.packet.Jingle;
 import org.jivesoftware.smackx.jingleold.packet.JingleError;
@@ -28,8 +25,6 @@ import org.jivesoftware.smackx.jingleold.packet.JingleError;
  *  @see JingleSessionState
  */
 public class JingleSessionStateActive extends JingleSessionState {
-    private static final Logger LOGGER = Logger.getLogger(JingleSessionStateActive.class.getName());
-
     private static JingleSessionStateActive INSTANCE = null;
 
     protected JingleSessionStateActive() {
@@ -91,7 +86,7 @@ public class JingleSessionStateActive extends JingleSessionState {
         }
         return response;
     }
-
+    
     /**
      * Receive and process the <session-terminate> action.
      */
@@ -103,10 +98,10 @@ public class JingleSessionStateActive extends JingleSessionState {
         try {
             session.terminate("Closed remotely");
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "exception", e);
+            e.printStackTrace();
         }
 
         return response;
     }
-
+    
 }

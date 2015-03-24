@@ -17,14 +17,10 @@
 
 package org.jivesoftware.smackx.muc;
 
-import java.util.logging.Logger;
-
 import org.jivesoftware.smackx.muc.packet.MUCItem;
 import org.jivesoftware.smackx.muc.packet.MUCUser;
 import org.jivesoftware.smack.packet.Presence;
-import org.jxmpp.jid.FullJid;
-import org.jxmpp.jid.Jid;
-import org.jxmpp.jid.parts.Resourcepart;
+import org.jxmpp.util.XmppStringUtils;
 
 /**
  * Represents the information about an occupant in a given room. The information will always have
@@ -33,15 +29,12 @@ import org.jxmpp.jid.parts.Resourcepart;
  * @author Gaston Dombiak
  */
 public class Occupant {
-
-    private static final Logger LOGGER = Logger.getLogger(Occupant.class.getName());
-
     // Fields that must have a value
     private final MUCAffiliation affiliation;
     private final MUCRole role;
     // Fields that may have a value
-    private final Jid jid;
-    private final Resourcepart nick;
+    private final String jid;
+    private final String nick;
 
     Occupant(MUCItem item) {
         this.jid = item.getJid();
@@ -58,13 +51,7 @@ public class Occupant {
         this.affiliation = item.getAffiliation();
         this.role = item.getRole();
         // Get the nickname from the FROM attribute of the presence
-        FullJid from = presence.getFrom().asFullJidIfPossible();
-        if (from == null) {
-            LOGGER.warning("Occupant presence without resource: " + presence.getFrom());
-            this.nick = null;
-        } else { 
-            this.nick = from.getResourcepart();
-        }
+        this.nick = XmppStringUtils.parseResource(presence.getFrom());
     }
 
     /**
@@ -75,7 +62,7 @@ public class Occupant {
      *
      * @return the full JID of the occupant.
      */
-    public Jid getJid() {
+    public String getJid() {
         return jid;
     }
 
@@ -106,7 +93,7 @@ public class Occupant {
      * @return the current nickname of the occupant in the room or null if this information was
      *         obtained from a presence.
      */
-    public Resourcepart getNick() {
+    public String getNick() {
         return nick;
     }
 
